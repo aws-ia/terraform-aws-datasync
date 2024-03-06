@@ -14,7 +14,6 @@ resource "aws_datasync_agent" "this" {
   lifecycle {
     create_before_destroy = false
   }
-  #tags = var.tags
 }
 
 ##########################
@@ -25,7 +24,7 @@ data "aws_region" "current" {}
 
 resource "aws_vpc_endpoint" "datasync_vpce" {
 
-  provider          = aws.dst # Specify provider for the Dest AWS Account
+  provider = aws.dst # Specify provider for the Dest AWS Account
 
   #for_each = var.create_vpc_endpoint ? toset(["datasync_vpce"]) : toset([])
 
@@ -60,16 +59,16 @@ resource "aws_vpc_endpoint" "datasync_vpce" {
 #######################################################
 
 data "aws_network_interface" "test" {
-  provider          = aws.dst # Specify provider for the Dest AWS Account
-  id                = tolist(aws_vpc_endpoint.datasync_vpce.network_interface_ids)[0]
+  provider = aws.dst # Specify provider for the Dest AWS Account
+  id       = tolist(aws_vpc_endpoint.datasync_vpce.network_interface_ids)[0]
 }
 
 data "aws_subnet" "subnet_arn" {
-  provider          = aws.dst # Specify provider for the Dest AWS Account
-  id    = tolist(aws_vpc_endpoint.datasync_vpce.subnet_ids)[0]
+  provider = aws.dst # Specify provider for the Dest AWS Account
+  id       = tolist(aws_vpc_endpoint.datasync_vpce.subnet_ids)[0]
 }
 
 data "aws_security_group" "sg_arn" {
-  provider          = aws.dst # Specify provider for the Dest AWS Account
-  id    = tolist(aws_vpc_endpoint.datasync_vpce.security_group_ids)[0]
+  provider = aws.dst # Specify provider for the Dest AWS Account
+  id       = tolist(aws_vpc_endpoint.datasync_vpce.security_group_ids)[0]
 }
