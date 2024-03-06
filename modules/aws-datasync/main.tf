@@ -3,7 +3,7 @@
 ##################
 
 resource "aws_datasync_agent" "this" {
-  provider              = aws.dst # Specify provider for the destination account 
+  provider              = aws.dst # Optional - Specify provider for Cross Account (For Cross account use cases)
   ip_address            = var.agent_ip_address
   security_group_arns   = [data.aws_security_group.sg_arn.arn]
   subnet_arns           = [data.aws_subnet.subnet_arn.arn]
@@ -24,9 +24,7 @@ data "aws_region" "current" {}
 
 resource "aws_vpc_endpoint" "datasync_vpce" {
 
-  provider = aws.dst # Specify provider for the Dest AWS Account
-
-  #for_each = var.create_vpc_endpoint ? toset(["datasync_vpce"]) : toset([])
+  provider = aws.dst # Optional - Specify provider for Cross Account (For Cross account use cases) 
 
   vpc_id            = var.dest_vpc_id
   service_name      = "com.amazonaws.${data.aws_region.current.name}.datasync"
@@ -59,16 +57,16 @@ resource "aws_vpc_endpoint" "datasync_vpce" {
 #######################################################
 
 data "aws_network_interface" "test" {
-  provider = aws.dst # Specify provider for the Dest AWS Account
+  provider = aws.dst # Optional - Specify provider for Cross Account (For Cross account use cases)
   id       = tolist(aws_vpc_endpoint.datasync_vpce.network_interface_ids)[0]
 }
 
 data "aws_subnet" "subnet_arn" {
-  provider = aws.dst # Specify provider for the Dest AWS Account
+  provider = aws.dst # Optional - Specify provider for Cross Account (For Cross account use cases)
   id       = tolist(aws_vpc_endpoint.datasync_vpce.subnet_ids)[0]
 }
 
 data "aws_security_group" "sg_arn" {
-  provider = aws.dst # Specify provider for the Dest AWS Account
+  provider = aws.dst # Optional - Specify provider for Cross Account (For Cross account use cases)
   id       = tolist(aws_vpc_endpoint.datasync_vpce.security_group_ids)[0]
 }
