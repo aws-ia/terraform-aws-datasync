@@ -3,8 +3,8 @@
 ##################################
 
 resource "aws_security_group" "vpce_sg" {
-  
-  provider = aws.dst   # # Specify provider for the destination EFS account
+
+  provider = aws.dst # Specify provider for the destination EFS account
 
   for_each = (var.create_vpc_endpoint && var.create_vpc_endpoint_security_group) ? toset(["vpce_sg"]) : toset([])
 
