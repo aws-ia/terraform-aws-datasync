@@ -7,7 +7,6 @@
 # S3 location 3xample
 module "s3_location" {
   source = "../../modules/datasync-locations"
-  # Example S3 location
   s3_locations = [
     {
       name          = "anycompany-bu1-appl1-logs"
@@ -15,12 +14,20 @@ module "s3_location" {
       subdirectory  = "/logs/"
       create_role   = true
       tags          = { project = "datasync-module" }
-    },
+    }
+  ]
+}
+
+# EFS location example
+module "efs_location" {
+  source = "../../modules/datasync-locations"
+  efs_locations = [
     {
-      name          = "anycompany-bu1-backups"
-      s3_bucket_arn = "arn:aws:s3:::anycompany-bu1-backups"
-      create_role   = true
-      tags          = { project = "datasync-module" }
+      name                           = "datasync-efs"
+      efs_file_system_arn            = aws_efs_file_system.efs.arn
+      ec2_config_subnet_arn          = module.vpc.private_subnet_arns[0]
+      ec2_config_security_group_arns = [aws_security_group.MyEfsSecurityGroup.arn]
+      tags                           = { project = "datasync-module" }
     }
   ]
 }
@@ -30,23 +37,15 @@ module "backup_tasks" {
   source = "../../modules/datasync-task"
   datasync_tasks = [
     {
-      name                     = "s3-logs-backup"
-      source_location_arn      = module.s3_location.s3_locations["anycompany-bu1-appl1-logs"].arn
-      destination_location_arn = module.s3_location.s3_locations["anycompany-bu1-backups"].arn
+      name                     = "efs_to_s3"
+      source_location_arn      = module.s3_location.s3_locations["scp-analyzer-project"].arn
+      destination_location_arn = module.efs_location.efs_locations["datasync-efs"].arn
       options = {
         posix_permissions = "NONE"
         uid               = "NONE"
         gid               = "NONE"
       }
-      schedule_expression = "rate(1 hour)" # Run every hour
-      includes = {
-        "filter_type" = "SIMPLE_PATTERN"
-        "value"       = "/logs/"
-      }
-      excludes = {
-        "filter_type" = "SIMPLE_PATTERN"
-        "value"       = "*/temp"
-      }
+      schedule_expression = "cron(0 6 ? * MON-FRI *)" # Run at 6:00 am (UTC) every Monday through Friday:
     }
   ]
 }
