@@ -1,10 +1,5 @@
-# random pet
-resource "random_pet" "this" {
-  length = 2
-}
-
 resource "aws_efs_file_system" "efs" {
-  creation_token = "datasync-efs-${random_pet.this.id}"
+  creation_token = "datasync-efs-${random_pet.prefix.id}"
 
   performance_mode = "generalPurpose"
   throughput_mode  = "bursting"
