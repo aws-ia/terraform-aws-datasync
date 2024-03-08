@@ -4,21 +4,28 @@
 # to build your own root module that invokes this module
 #####################################################################################
 
-# S3 location 3xample
+# random pet prefix to name resources
+resource "random_pet" "prefix" {
+  length = 2
+}
+
+# S3 location Example
 module "s3_location" {
   source = "../../modules/datasync-locations"
   # Example S3 location
   s3_locations = [
     {
-      name          = "anycompany-bu1-appl1-logs"
-      s3_bucket_arn = "arn:aws:s3:::anycompany-bu1-appl1-bucket",
-      subdirectory  = "/logs/"
+      name = "anycompany-bu1-appl1-logs"
+      # In this example a new S3 bucket is created in s3.tf
+      s3_bucket_arn = aws_s3_bucket.appl1-bucket.arn
+      subdirectory  = "/"
       create_role   = true
       tags          = { project = "datasync-module" }
     },
     {
       name          = "anycompany-bu1-backups"
-      s3_bucket_arn = "arn:aws:s3:::anycompany-bu1-backups"
+      s3_bucket_arn = aws_s3_bucket.anycompany-bu1-backups.arn
+      subdirectory  = "/"
       create_role   = true
       tags          = { project = "datasync-module" }
     }

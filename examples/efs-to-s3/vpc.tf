@@ -1,11 +1,6 @@
 #############################
 # Create VPC and Subnets 
 #############################
-resource "random_pet" "name" {
-  prefix = "aws-ia"
-  length = 1
-}
-
 data "aws_availability_zones" "available" {}
 
 #VPC flow logs enabled. Skipping tfsec bug https://github.com/aquasecurity/tfsec/issues/1941
@@ -18,7 +13,7 @@ module "vpc" {
   azs             = slice(data.aws_availability_zones.available.names, 0, (var.subnet-count))
   private_subnets = [for subnet in range(var.subnet-count) : cidrsubnet(var.vpc_cidr_block, 8, subnet)] # For Private subnets
   public_subnets  = [for subnet in range(var.subnet-count) : cidrsubnet(var.vpc_cidr_block, 8, sum([subnet, var.subnet-count]))]
-  name            = "${random_pet.name.id}-gateway-vpc"
+  name            = "${random_pet.prefix.id}-gateway-vpc"
 
   enable_dns_hostnames                 = true
   create_igw                           = true

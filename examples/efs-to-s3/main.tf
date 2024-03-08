@@ -4,14 +4,20 @@
 # to build your own root module that invokes this module
 #####################################################################################
 
-# S3 location 3xample
+# random pet prefix to name resources
+resource "random_pet" "prefix" {
+  length = 2
+}
+
+# S3 location Example
 module "s3_location" {
   source = "../../modules/datasync-locations"
   s3_locations = [
     {
-      name          = "anycompany-bu1-appl1-logs"
-      s3_bucket_arn = "arn:aws:s3:::anycompany-bu1-appl1-bucket",
-      subdirectory  = "/logs/"
+      name = "anycompany-bu1-appl1-logs"
+      # In this example a new S3 bucket is created in s3.tf
+      s3_bucket_arn = aws_s3_bucket.appl1-bucket.arn
+      subdirectory  = "/"
       create_role   = true
       tags          = { project = "datasync-module" }
     }
@@ -23,13 +29,18 @@ module "efs_location" {
   source = "../../modules/datasync-locations"
   efs_locations = [
     {
-      name                           = "datasync-efs"
+      name = "datasync-efs"
+      # In this example a new EFS file system is created in efs.tf
       efs_file_system_arn            = aws_efs_file_system.efs.arn
       ec2_config_subnet_arn          = module.vpc.private_subnet_arns[0]
       ec2_config_security_group_arns = [aws_security_group.MyEfsSecurityGroup.arn]
       tags                           = { project = "datasync-module" }
     }
   ]
+
+  # The mount target should exist before we create the EFS location
+  depends_on = [aws_efs_mount_target.efs_subnet_mount_target]
+
 }
 
 # Task example
@@ -38,7 +49,7 @@ module "backup_tasks" {
   datasync_tasks = [
     {
       name                     = "efs_to_s3"
-      source_location_arn      = module.s3_location.s3_locations["scp-analyzer-project"].arn
+      source_location_arn      = module.s3_location.s3_locations["anycompany-bu1-appl1-logs"].arn
       destination_location_arn = module.efs_location.efs_locations["datasync-efs"].arn
       options = {
         posix_permissions = "NONE"
