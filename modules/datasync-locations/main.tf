@@ -26,6 +26,8 @@ resource "aws_datasync_location_s3" "s3_location" {
     bucket_access_role_arn = try(each.value.bucket_access_role_arn, aws_iam_role.datasync_role_s3[each.key].arn)
   }
 
+  depends_on = [aws_s3_bucket_policy.allow_access_from_another_account]
+
 }
 
 
@@ -87,12 +89,12 @@ resource "aws_iam_role" "datasync_role_s3" {
 ### Bucket policy 
 
 resource "aws_s3_bucket_policy" "allow_access_from_another_account" {
-  
+
   provider = aws.dest
 
-  for_each         = {
-    for index, location in var.s3_locations:
-        location.name => location if try(location.s3_bucket_policy, false)
+  for_each = {
+    for index, location in var.s3_locations :
+    location.name => location if try(location.s3_bucket_policy, false)
   }
   bucket = each.value.s3_bucket_id
   # policy = data.aws_iam_policy_document.allow_access_from_another_account.json
