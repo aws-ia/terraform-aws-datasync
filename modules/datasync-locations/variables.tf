@@ -4,7 +4,6 @@ variable "s3_locations" {
     name                             = string
     agent_arns                       = optional(list(string))
     s3_bucket_arn                    = string
-    s3_bucket_id                     = string
     s3_config_bucket_access_role_arn = optional(string)
     s3_storage_class                 = optional(string)
     subdirectory                     = optional(string)

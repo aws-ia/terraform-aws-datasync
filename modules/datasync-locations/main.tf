@@ -4,12 +4,6 @@
 # to build your own root module that invokes this module
 #####################################################################################
 
-provider "aws" {
-  alias   = "dest"
-  region  = var.region
-  profile = var.cross-account_profile
-}
-
 # S3 Datasync location
 resource "aws_datasync_location_s3" "s3_location" {
   for_each = {
@@ -25,8 +19,6 @@ resource "aws_datasync_location_s3" "s3_location" {
   s3_config {
     bucket_access_role_arn = try(each.value.bucket_access_role_arn, aws_iam_role.datasync_role_s3[each.key].arn)
   }
-
-  depends_on = [aws_s3_bucket_policy.allow_access_from_another_account]
 
 }
 
@@ -84,54 +76,6 @@ resource "aws_iam_role" "datasync_role_s3" {
       ]
     })
   }
-}
-
-### Bucket policy 
-
-resource "aws_s3_bucket_policy" "allow_access_from_another_account" {
-
-  provider = aws.dest
-
-  for_each = {
-    for index, location in var.s3_locations :
-    location.name => location if try(location.s3_bucket_policy, false)
-  }
-  bucket = each.value.s3_bucket_id
-  # policy = data.aws_iam_policy_document.allow_access_from_another_account.json
-
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "CrossAccountReadWrite",
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": [
-         "arn:aws:iam::402001211713:role/terraform-20240306191816704800000001",
-         "arn:aws:iam::402001211713:user/admin"
-        ]
-      },
-      "Action": [
-        "s3:GetBucketLocation",
-        "s3:ListBucket",
-        "s3:ListBucketMultipartUploads",
-        "s3:AbortMultipartUpload",
-        "s3:DeleteObject",
-        "s3:GetObject",
-        "s3:ListMultipartUploadParts",
-        "s3:PutObject",
-        "s3:GetObjectTagging",
-        "s3:PutObjectTagging"
-      ],
-      "Resource": [
-        "${each.value.s3_bucket_arn}/*",
-        "${each.value.s3_bucket_arn}"
-        ]
-    }
-  ]
-}
-EOF
 }
 
 # EFS Datasync location
