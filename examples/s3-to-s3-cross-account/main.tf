@@ -133,6 +133,7 @@ module "s3_source_location" {
     {
       name          = "source-bucket"
       s3_bucket_arn = aws_s3_bucket.source-bucket.arn # In this example a new S3 bucket is created in s3.tf
+      s3_config_bucket_access_role_arn = aws_iam_role.datasync_source_s3_access_role.arn
       subdirectory  = "/"
       create_role   = false
       tags          = { project = "datasync-module" }

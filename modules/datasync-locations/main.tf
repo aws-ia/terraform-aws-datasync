@@ -17,9 +17,9 @@ resource "aws_datasync_location_s3" "s3_location" {
   agent_arns       = try(each.value.agent_arns, null)
 
   s3_config {
-    bucket_access_role_arn = try(each.value.bucket_access_role_arn, aws_iam_role.datasync_role_s3[each.key].arn)
+    bucket_access_role_arn = each.value.s3_config_bucket_access_role_arn != null ? each.value.s3_config_bucket_access_role_arn : aws_iam_role.datasync_role_s3[each.key].arn
   }
-
+  
 }
 
 
