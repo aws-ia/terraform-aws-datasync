@@ -83,6 +83,10 @@ resource "aws_iam_role" "datasync_source_s3_access_role" {
 # Update Bucket policy on cross account S3
 ###########################################
 
+data "aws_caller_identity" "current" {}
+
+
+
 resource "aws_s3_bucket_policy" "allow_access_from_another_account" {
   provider = aws.cross-account
   bucket   = aws_s3_bucket.source-bucket.id
@@ -97,7 +101,7 @@ resource "aws_s3_bucket_policy" "allow_access_from_another_account" {
       "Principal": {
         "AWS": [
             "${aws_iam_role.datasync_source_s3_access_role.arn}",
-            "arn:aws:iam::402001211713:user/admin"  
+            "${data.aws_caller_identity.current.arn}"
         ]
       },
       "Action": [
