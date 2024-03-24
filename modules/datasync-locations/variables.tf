@@ -9,7 +9,6 @@ variable "s3_locations" {
     subdirectory                     = optional(string)
     tags                             = optional(map(string))
     create_role                      = optional(bool)
-    s3_bucket_policy                 = optional(bool)
   }))
   default     = []
   description = "A list of S3 locations and associated configuration"
