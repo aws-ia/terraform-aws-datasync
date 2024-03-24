@@ -28,7 +28,7 @@ module "s3_location" {
       subdirectory  = "/"
       create_role   = true
       tags          = { project = "datasync-module" }
-    }
+	}
   ]
 }
 
