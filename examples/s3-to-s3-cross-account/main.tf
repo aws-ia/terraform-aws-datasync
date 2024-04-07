@@ -29,6 +29,9 @@ resource "random_pet" "prefix" {
 # Create Datasync Location IAM role for Source Location
 ########################################################
 
+#TFSEC High warning supressed for IAM policy document uses sensitive action 's3:AbortMultipartUpload' on wildcarded resource. 
+# Ref Doc : https://docs.aws.amazon.com/datasync/latest/userguide/create-s3-location.html#create-role-manually
+#tfsec:ignore:aws-iam-no-policy-wildcards
 resource "aws_iam_role" "datasync_source_s3_access_role" {
 
 
@@ -59,7 +62,7 @@ resource "aws_iam_role" "datasync_source_s3_access_role" {
             "s3:ListBucketMultipartUploads",
           ]
           Effect   = "Allow"
-          Resource = "${aws_s3_bucket.source-bucket.arn}"
+          Resource = "${module.source_bucket.s3_bucket_arn}"
         },
         {
           Sid = "allowBucketObjects"
@@ -73,8 +76,8 @@ resource "aws_iam_role" "datasync_source_s3_access_role" {
             "s3:PutObject",
           ]
           Effect   = "Allow"
-          Resource = "${aws_s3_bucket.source-bucket.arn}/*"
-        },
+          Resource = "${module.source_bucket.s3_bucket_arn}/*"
+        }
       ]
     })
   }
@@ -85,11 +88,9 @@ resource "aws_iam_role" "datasync_source_s3_access_role" {
 
 data "aws_caller_identity" "current" {}
 
-
-
 resource "aws_s3_bucket_policy" "allow_access_from_another_account" {
   provider = aws.cross-account
-  bucket   = aws_s3_bucket.source-bucket.id
+  bucket   = module.source_bucket.s3_bucket_id
 
   policy = <<EOF
 {
@@ -117,8 +118,8 @@ resource "aws_s3_bucket_policy" "allow_access_from_another_account" {
         "s3:PutObjectTagging"
       ],
       "Resource": [
-        "${aws_s3_bucket.source-bucket.arn}/*",
-        "${aws_s3_bucket.source-bucket.arn}"
+        "${module.source_bucket.s3_bucket_arn}/*",
+        "${module.source_bucket.s3_bucket_arn}"
         ]
     }
   ]
@@ -135,15 +136,14 @@ module "s3_source_location" {
 
   s3_locations = [
     {
-      name          = "source-bucket"
-      s3_bucket_arn = aws_s3_bucket.source-bucket.arn # In this example a new S3 bucket is created in s3.tf
+      name                             = "source-bucket"
+      s3_bucket_arn                    = module.source_bucket.s3_bucket_arn # In this example a new S3 bucket is created in s3.tf
       s3_config_bucket_access_role_arn = aws_iam_role.datasync_source_s3_access_role.arn
-      subdirectory  = "/"
-      create_role   = false
-      tags          = { project = "datasync-module" }
+      subdirectory                     = "/"
+      create_role                      = false
+      tags                             = { project = "datasync-module" }
     }
   ]
-  #s3_locations = var.s3_source_locations
   depends_on = [aws_s3_bucket_policy.allow_access_from_another_account]
 
 }
@@ -153,7 +153,7 @@ module "s3_dest_location" {
   s3_locations = [
     {
       name          = "dest-bucket"
-      s3_bucket_arn = aws_s3_bucket.dest-bucket.arn # In this example a new S3 bucket is created in s3.tf
+      s3_bucket_arn = module.destination_bucket.s3_bucket_arn # In this example a new S3 bucket is created in s3.tf
       subdirectory  = "/"
       create_role   = true
       tags          = { project = "datasync-module" }
@@ -171,7 +171,7 @@ module "backup_tasks" {
 
   datasync_tasks = [
     {
-      name                     = "s3_to_s3_task"
+      name                     = "s3_to_s3_cross_account_task"
       source_location_arn      = module.s3_source_location.s3_locations["source-bucket"].arn
       destination_location_arn = module.s3_dest_location.s3_locations["dest-bucket"].arn
       options = {
