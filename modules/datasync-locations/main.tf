@@ -19,10 +19,12 @@ resource "aws_datasync_location_s3" "s3_location" {
   s3_config {
     bucket_access_role_arn = each.value.s3_config_bucket_access_role_arn != null ? each.value.s3_config_bucket_access_role_arn : aws_iam_role.datasync_role_s3[each.key].arn
   }
-  
+
 }
 
-
+#TFSEC High warning supressed for IAM policy document uses sensitive action 's3:AbortMultipartUpload' on wildcarded resource. 
+# Ref Doc : https://docs.aws.amazon.com/datasync/latest/userguide/create-s3-location.html#create-role-manually
+#tfsec:ignore:aws-iam-no-policy-wildcards
 resource "aws_iam_role" "datasync_role_s3" {
 
   for_each = {
@@ -73,6 +75,17 @@ resource "aws_iam_role" "datasync_role_s3" {
           Effect   = "Allow"
           Resource = "${each.value.s3_bucket_arn}/*"
         },
+        {
+          Sid    = "allowKMSAccess"
+          Effect = "Allow",
+          Action = [
+            "kms:Encrypt",
+            "kms:Decrypt",
+            "kms:DescribeKey",
+            "kms:GenerateDataKey"
+          ],
+          Resource = "arn:aws:kms:*:*:key/*"
+        }
       ]
     })
   }
