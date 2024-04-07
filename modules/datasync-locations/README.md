@@ -68,7 +68,7 @@ No modules.
 
 | Name | Description |
 |------|-------------|
-| <a name="output_datasync_role_arn"></a> [datasync\_role\_arn](#output\_datasync\_role\_arn) | n/a |
-| <a name="output_efs_locations"></a> [efs\_locations](#output\_efs\_locations) | n/a |
-| <a name="output_s3_locations"></a> [s3\_locations](#output\_s3\_locations) | n/a |
+| <a name="output_datasync_role_arn"></a> [datasync\_role\_arn](#output\_datasync\_role\_arn) | DataSync IAM Role |
+| <a name="output_efs_locations"></a> [efs\_locations](#output\_efs\_locations) | DataSync Location ARN for EFS |
+| <a name="output_s3_locations"></a> [s3\_locations](#output\_s3\_locations) | DataSync Location ARN for S3 |
 <!-- END_TF_DOCS -->
