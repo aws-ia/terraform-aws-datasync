@@ -31,12 +31,3 @@ variable "efs_locations" {
   description = "A list of EFS locations and associated configuration"
 }
 
-variable "cross-account_profile" {
-  description = "AWS Profile"
-  default     = "dest"
-}
-
-variable "region" {
-  description = "AWS region"
-  default     = "us-east-1"
-}
