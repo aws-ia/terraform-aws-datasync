@@ -17,7 +17,7 @@ provider "aws" {
 provider "aws" {
   alias   = "cross-account"
   region  = var.region
-  profile = var.cross-account_profile
+  profile = var.cross_account_profile
 }
 
 # random pet prefix to name resources
