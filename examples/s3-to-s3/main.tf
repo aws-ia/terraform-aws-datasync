@@ -17,14 +17,14 @@ module "s3_location" {
     {
       name = "anycompany-bu1-appl1-logs"
       # In this example a new S3 bucket is created in s3.tf
-      s3_bucket_arn = aws_s3_bucket.appl1-bucket.arn
+      s3_bucket_arn = module.appl1-bucket.s3_bucket_arn
       subdirectory  = "/"
       create_role   = true
       tags          = { project = "datasync-module" }
     },
     {
       name          = "anycompany-bu1-backups"
-      s3_bucket_arn = aws_s3_bucket.anycompany-bu1-backups.arn
+      s3_bucket_arn = module.backup-bucket.s3_bucket_arn
       subdirectory  = "/"
       create_role   = true
       tags          = { project = "datasync-module" }
