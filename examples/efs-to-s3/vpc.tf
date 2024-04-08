@@ -13,7 +13,7 @@ module "vpc" {
   azs             = slice(data.aws_availability_zones.available.names, 0, (var.subnet-count))
   private_subnets = [for subnet in range(var.subnet-count) : cidrsubnet(var.vpc_cidr_block, 8, subnet)] # For Private subnets
   public_subnets  = [for subnet in range(var.subnet-count) : cidrsubnet(var.vpc_cidr_block, 8, sum([subnet, var.subnet-count]))]
-  name            = "${random_pet.prefix.id}-gateway-vpc"
+  name            = "${random_pet.prefix.id}-datasync-vpc"
 
   enable_dns_hostnames                 = true
   create_igw                           = true
