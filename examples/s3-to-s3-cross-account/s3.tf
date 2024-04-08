@@ -1,7 +1,8 @@
 ##################################################
 ## Create S3 Bucket for DataSync Source location
 ##################################################
-
+#Versioning disabled as per guidnance from the S3 to S3 Cross account tutorial DataSync documentation. Read https://docs.aws.amazon.com/datasync/latest/userguide/tutorial_s3-s3-cross-account-transfer.html
+#tfsec:ignore:aws-s3-enable-versioning
 module "source_bucket" {
   providers = {
     aws = aws.cross-account
@@ -21,9 +22,6 @@ module "source_bucket" {
     target_prefix = "log/"
   }
 
-  versioning = {
-    enabled = true
-  }
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "source-bucket" {
@@ -105,7 +103,8 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "source-log-bucket
 ################################################
 ## Create S3 Bucket for Destination location
 ################################################
-
+#Versioning disabled as per guidnance from the S3 to S3 Cross account tutorial DataSync documentation. Read https://docs.aws.amazon.com/datasync/latest/userguide/tutorial_s3-s3-cross-account-transfer.html
+#tfsec:ignore:aws-s3-enable-versioning
 module "destination_bucket" {
   source                   = "terraform-aws-modules/s3-bucket/aws"
   version                  = ">=3.5.0"
@@ -122,9 +121,6 @@ module "destination_bucket" {
     target_prefix = "log/"
   }
 
-  versioning = {
-    enabled = true
-  }
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "dest-bucket" {
