@@ -12,6 +12,6 @@ variable "efs_security_group_egress_cidr_block" {
 
 variable "subnet-count" {
   type        = number
-  description = "Number of sunbets per type"
+  description = "Number of sunbets per VPC"
   default     = 1
 }

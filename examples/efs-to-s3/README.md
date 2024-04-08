@@ -46,6 +46,6 @@
 
 | Name | Description |
 |------|-------------|
-| <a name="output_my_efs_locations"></a> [my\_efs\_locations](#output\_my\_efs\_locations) | n/a |
-| <a name="output_my_s3_locations"></a> [my\_s3\_locations](#output\_my\_s3\_locations) | n/a |
+| <a name="output_my_efs_locations"></a> [my\_efs\_locations](#output\_my\_efs\_locations) | DataSync EFS Location ARN |
+| <a name="output_my_s3_locations"></a> [my\_s3\_locations](#output\_my\_s3\_locations) | DataSync S3 Location ARN |
 <!-- END_TF_DOCS -->
