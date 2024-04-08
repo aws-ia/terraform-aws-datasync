@@ -1,6 +1,6 @@
 variable "region" {
   description = "The name of the region you wish to deploy into"
-  default     = ""
+  default     = "us-east-1"
 }
 
 variable "owner_profile" {
