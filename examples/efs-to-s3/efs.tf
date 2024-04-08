@@ -36,13 +36,16 @@ resource "aws_security_group" "MyEfsSecurityGroup" {
     from_port   = 2049
     to_port     = 2049
     protocol    = "TCP"
+    description = "NFS-TCP"
     cidr_blocks = [var.vpc_cidr_block]
   }
-
+  #outbound connections for EFS Mount Target to reach to AWS services
+  #tfsec:ignore:aws-ec2-no-public-egress-sgr
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
+    description = "EFS Egress Traffic"
     cidr_blocks = [var.efs_security_group_egress_cidr_block]
   }
 
