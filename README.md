@@ -7,21 +7,21 @@ AWS DataSync supports a wide variety of file and object storage systems on-premi
 
 For on-premises storage transfers : DataSync works with the following on-premises storage systems:
 
--Network File System (NFS)
--Server Message Block (SMB)
--Hadoop Distributed File Systems (HDFS)
--Object storage
+- Network File System (NFS)
+- Server Message Block (SMB)
+- Hadoop Distributed File Systems (HDFS)
+- Object storage
 
 For AWS storage transfers: DataSync works with the following AWS storage services:
 
--Amazon S3
--Amazon EFS
--Amazon FSx for Windows File Server
--Amazon FSx for Lustre
--Amazon FSx for OpenZFS
--Amazon FSx for NetApp ONTAP
+- Amazon S3
+- Amazon EFS
+- Amazon FSx for Windows File Server
+- Amazon FSx for Lustre
+- Amazon FSx for OpenZFS
+- Amazon FSx for NetApp ONTAP
 
-The module requires a source DataSync location and destination Datasync location to be declared. The default location types supported are S3 and EFS. For more details regarding the DataSync Locations S3 and EFS and their respective arguments can be found [here](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/datasync_location_s3.html) and [here].(https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/datasync_location_efs).
+The module requires a source DataSync location and destination Datasync location to be declared. The default location types supported are S3 and EFS. For more details regarding the DataSync Locations S3 and EFS and their respective arguments can be found [here](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/datasync_location_s3.html) and [here](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/datasync_location_efs).
 
 ## [DataSync Locations Module](modules/datasync-locations/)
 
@@ -124,7 +124,6 @@ Refer to s3 to s3 Datasync example for an end to end example : [s3-to-s3](exampl
 - Link to S3 to S3 same account sync example for in-cloud sync : [s3-to-s3](examples/s3-to-s3/)
 - Link to S3 to S3 cross account sync example for in-cloud sync : [s3-to-s3-cross-account](examples/s3-to-s3-cross-account/)
 - Link to EFS to S3 same account sync example for in-cloud sync : [efs-to-s3](examples/efs-to-s3/)
-- Link to S3 to EFS same account sync example for in-cloud sync :
 
 ## Requirements
 
