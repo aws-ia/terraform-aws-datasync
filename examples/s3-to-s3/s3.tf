@@ -1,11 +1,11 @@
+
+data "aws_caller_identity" "current" {}
+
 ##################################################
 ## Create S3 Bucket for DataSync Source location
 ##################################################
 #Versioning disabled as per guidnance from the S3 to S3 Cross account tutorial DataSync documentation. Read https://docs.aws.amazon.com/datasync/latest/userguide/tutorial_s3-s3-cross-account-transfer.html
 #tfsec:ignore:aws-s3-enable-versioning
-
-data "aws_caller_identity" "current" {}
-
 module "source_bucket" {
   source                   = "terraform-aws-modules/s3-bucket/aws"
   version                  = ">=3.5.0"
