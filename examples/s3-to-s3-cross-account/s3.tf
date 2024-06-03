@@ -49,13 +49,27 @@ resource "aws_kms_key_policy" "source-kms-key-policy" {
     Id = "SourceKMSKeyPolicy"
     Statement = [
       {
-        Action = "kms:*"
+        Action = [
+          "kms:Encrypt",
+          "kms:Decrypt",
+          "kms:DescribeKey",
+          "kms:GenerateDataKey",
+          "kms:PutKeyPolicy",
+          "kms:Get*",
+          "kms:List*"
+        ]
         Effect = "Allow"
         Principal = {
-          AWS = "*"
+          AWS = [
+            "${aws_iam_role.datasync_source_s3_access_role.arn}",
+            "${module.s3_dest_location.datasync_role_arn["dest-bucket"]}",
+            "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root",
+            "arn:aws:iam::${data.aws_caller_identity.cross-account.account_id}:root"
+
+          ]
         }
 
-        Resource = "*"
+        Resource = "${aws_kms_key.source-kms.arn}"
         Sid      = "Enable IAM User Permissions"
       },
     ]
@@ -146,13 +160,26 @@ resource "aws_kms_key_policy" "dest-kms-key-policy" {
     Id = "SourceKMSKeyPolicy"
     Statement = [
       {
-        Action = "kms:*"
+        Action = [
+          "kms:Encrypt",
+          "kms:Decrypt",
+          "kms:DescribeKey",
+          "kms:GenerateDataKey",
+          "kms:PutKeyPolicy",
+          "kms:Get*",
+          "kms:List*"
+        ]
         Effect = "Allow"
         Principal = {
-          AWS = "*"
+          AWS = [
+            "${aws_iam_role.datasync_source_s3_access_role.arn}",
+            "${module.s3_dest_location.datasync_role_arn["dest-bucket"]}",
+            "${data.aws_caller_identity.current.arn}",
+            "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+          ]
         }
 
-        Resource = "*"
+        Resource = "${aws_kms_key.dest-kms.arn}"
         Sid      = "Enable IAM User Permissions"
       },
     ]
