@@ -6,6 +6,8 @@ variable "s3_locations" {
     s3_bucket_arn                    = string
     s3_config_bucket_access_role_arn = optional(string)
     s3_storage_class                 = optional(string)
+    s3_source_bucket_kms_arn         = optional(string)
+    s3_dest_bucket_kms_arn           = optional(string)
     subdirectory                     = optional(string)
     tags                             = optional(map(string))
     create_role                      = optional(bool)
