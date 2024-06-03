@@ -15,20 +15,24 @@ module "s3_location" {
   # Example S3 location
   s3_locations = [
     {
-      name = "anycompany-bu1-appl1-logs"
       # In this example a new S3 bucket is created in s3.tf
-      s3_bucket_arn = module.appl1-bucket.s3_bucket_arn
-      subdirectory  = "/"
-      create_role   = true
-      tags          = { project = "datasync-module" }
+      name                     = "source-bucket"
+      s3_bucket_arn            = module.source_bucket.s3_bucket_arn
+      subdirectory             = "/"
+      create_role              = true
+      s3_source_bucket_kms_arn = aws_kms_key.source-kms.arn
+      s3_dest_bucket_kms_arn   = aws_kms_key.dest-kms.arn
+      tags                     = { project = "datasync-module" }
     },
     {
-      name          = "anycompany-bu1-backups"
-      s3_bucket_arn = module.backup-bucket.s3_bucket_arn
-      subdirectory  = "/"
-      create_role   = true
-      tags          = { project = "datasync-module" }
-	}
+      name                     = "dest-bucket"
+      s3_bucket_arn            = module.dest_bucket.s3_bucket_arn
+      subdirectory             = "/"
+      create_role              = true
+      s3_source_bucket_kms_arn = aws_kms_key.source-kms.arn
+      s3_dest_bucket_kms_arn   = aws_kms_key.dest-kms.arn
+      tags                     = { project = "datasync-module" }
+    }
   ]
 }
 
@@ -37,9 +41,9 @@ module "backup_tasks" {
   source = "../../modules/datasync-task"
   datasync_tasks = [
     {
-      name                     = "s3-logs-backup"
-      source_location_arn      = module.s3_location.s3_locations["anycompany-bu1-appl1-logs"].arn
-      destination_location_arn = module.s3_location.s3_locations["anycompany-bu1-backups"].arn
+      name                     = "s3-to-s3-backup"
+      source_location_arn      = module.s3_location.s3_locations["source-bucket"].arn
+      destination_location_arn = module.s3_location.s3_locations["dest-bucket"].arn
       options = {
         posix_permissions = "NONE"
         uid               = "NONE"
