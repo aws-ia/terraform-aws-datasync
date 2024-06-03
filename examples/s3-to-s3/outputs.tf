@@ -7,5 +7,9 @@ output "backup_tasks" {
 }
 
 output "datasync_role_arn" {
-  value = module.s3_location.datasync_role_arn["anycompany-bu1-appl1-logs"]
+  value = module.s3_location.datasync_role_arn["source-bucket"]
+}
+
+output "datasync_role_arn" {
+  value = module.s3_location.datasync_role_arn["dest-bucket"]
 }
