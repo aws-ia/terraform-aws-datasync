@@ -9,7 +9,7 @@
 #######################################
 
 provider "aws" {
-  # alias = "src"
+  alias   = "src"
   profile = var.owner_profile
   region  = var.region
 }
@@ -23,6 +23,10 @@ provider "aws" {
 # random pet prefix to name resources
 resource "random_pet" "prefix" {
   length = 2
+}
+
+data "aws_caller_identity" "cross-account" {
+  provider = aws.cross-account
 }
 
 ########################################################
@@ -152,11 +156,13 @@ module "s3_dest_location" {
   source = "../../modules/datasync-locations"
   s3_locations = [
     {
-      name          = "dest-bucket"
-      s3_bucket_arn = module.destination_bucket.s3_bucket_arn # In this example a new S3 bucket is created in s3.tf
-      subdirectory  = "/"
-      create_role   = true
-      tags          = { project = "datasync-module" }
+      name                     = "dest-bucket"
+      s3_bucket_arn            = module.destination_bucket.s3_bucket_arn # In this example a new S3 bucket is created in s3.tf
+      subdirectory             = "/"
+      create_role              = true
+      s3_source_bucket_kms_arn = aws_kms_key.source-kms.arn
+      s3_dest_bucket_kms_arn   = aws_kms_key.dest-kms.arn
+      tags                     = { project = "datasync-module" }
     }
   ]
 }

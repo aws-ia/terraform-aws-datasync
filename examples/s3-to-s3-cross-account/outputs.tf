@@ -18,6 +18,18 @@ output "datasync_src_role_arn" {
   value = aws_iam_role.datasync_source_s3_access_role.arn
 }
 
-# output "datasync_dest_role_arn" {
-#   value = module.s3_dest_location.datasync_role_arn["dest-bucket"]
+output "datasync_dest_role_arn" {
+  value = module.s3_dest_location.datasync_role_arn["dest-bucket"]
+}
+
+# output "source_kms_key_arn" {
+#   value = aws_kms_key.source-kms.arn
+# }
+
+# output "dest_kms_key_arn" {
+#   value = aws_kms_key.dest-kms.arn
+# }
+
+# output "cross_account_id" {
+#   value = data.aws_caller_identity.cross-account.account_id
 # }
