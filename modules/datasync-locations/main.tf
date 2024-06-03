@@ -25,11 +25,6 @@ resource "aws_datasync_location_s3" "s3_location" {
 #TFSEC High warning supressed for IAM policy document uses sensitive action 's3:AbortMultipartUpload' on wildcarded resource. 
 # Ref Doc : https://docs.aws.amazon.com/datasync/latest/userguide/create-s3-location.html#create-role-manually
 #tfsec:ignore:aws-iam-no-policy-wildcards
-
-# data "aws_kms_key" "by_key_arn" {
-#   key_id = "arn:aws:kms:us-east-1:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab"
-# }
-
 resource "aws_iam_role" "datasync_role_s3" {
 
   for_each = {
