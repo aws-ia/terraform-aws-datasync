@@ -17,6 +17,8 @@ To configure one or more S3 Locations use the `s3_locations` variable. It is a l
 - `s3_bucket_arn` - (Required) Amazon Resource Name (ARN) of the S3 Bucket.
 - `s3_config_bucket_access_role_arn` - (Optional) ARN of the IAM Role used to connect to the S3 Bucket. Must be provided if `create_role` is set to false.
 - `s3_storage_class` - (Optional) The Amazon S3 storage class that you want to store your files in when this location is used as a task destination.
+- `3_source_bucket_kms_arn` - (Optional) ARN of the KMS Customer Managed Key to encrypt the source S3 Objects. 
+- `3_source_bucket_kms_arn` - (Optional) ARN of the KMS Customer Managed Key to encrypt the destination S3 Objects.
 - `subdirectory` - (Optional) Prefix to perform actions as source or destination.
 - `tags` - (Optional) Key-value pairs of resource tags to assign to the DataSync Location.
 - `create_role` - (Optional) Whether to create the IAM role for accessing the S3 bucket (true) or provide it directly (false). Default is true. If this is set to `false`, specify an existing IAM role for: `s3_config_bucket_access_role_arn`.
