@@ -1,6 +1,3 @@
-
-data "aws_caller_identity" "current" {}
-
 #Versioning not added as per guidnance from the S3 to S3 Cross account tutorial DataSync documentation. Read https://docs.aws.amazon.com/datasync/latest/userguide/tutorial_s3-s3-cross-account-transfer.html
 #tfsec:ignore:aws-s3-enable-versioning
 module "source-bucket" {
@@ -22,7 +19,7 @@ module "source-bucket" {
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "source-bucket" {
-  bucket   = module.source-bucket.s3_bucket_id
+  bucket = module.source-bucket.s3_bucket_id
   rule {
     apply_server_side_encryption_by_default {
       kms_master_key_id = aws_kms_key.source-kms.arn
@@ -60,7 +57,7 @@ module "s3_log_delivery_bucket" {
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "s3-log-bucket" {
-  bucket   = module.s3_log_delivery_bucket.s3_bucket_id
+  bucket = module.s3_log_delivery_bucket.s3_bucket_id
   rule {
     apply_server_side_encryption_by_default {
       kms_master_key_id = aws_kms_key.source-kms.arn

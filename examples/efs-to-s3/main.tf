@@ -16,12 +16,12 @@ module "s3_location" {
     {
       name = "datasync-s3"
       # In this example a new S3 bucket is created in s3.tf
-      s3_bucket_arn = module.source-bucket.s3_bucket_arn
-      subdirectory  = "/"
-      create_role   = true
+      s3_bucket_arn            = module.source-bucket.s3_bucket_arn
+      subdirectory             = "/"
+      create_role              = true
       s3_source_bucket_kms_arn = aws_kms_key.source-kms.arn
 
-      tags          = { project = "datasync-module" }
+      tags = { project = "datasync-module" }
     }
   ]
 }
