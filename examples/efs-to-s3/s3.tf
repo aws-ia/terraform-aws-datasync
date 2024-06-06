@@ -1,14 +1,12 @@
-# resource "aws_s3_bucket" "appl1-bucket" {
-#   # Use prefix and anycompany-bu1-appl1-bucket to name the bucket
-#   bucket = "${random_pet.prefix.id}-anycompany-bu1-appl1-bucket"
-# }
+
+data "aws_caller_identity" "current" {}
 
 #Versioning not added as per guidnance from the S3 to S3 Cross account tutorial DataSync documentation. Read https://docs.aws.amazon.com/datasync/latest/userguide/tutorial_s3-s3-cross-account-transfer.html
 #tfsec:ignore:aws-s3-enable-versioning
-module "appl1-bucket" {
+module "source-bucket" {
   source                   = "terraform-aws-modules/s3-bucket/aws"
   version                  = ">=3.5.0"
-  bucket                   = "${random_pet.prefix.id}-anycompany-bu1-appl1-bucket"
+  bucket                   = "${random_pet.prefix.id}-source-bucket"
   control_object_ownership = true
   object_ownership         = "BucketOwnerEnforced"
   block_public_acls        = true
@@ -17,23 +15,23 @@ module "appl1-bucket" {
   restrict_public_buckets  = true
 
   logging = {
-    target_bucket = module.source_log_delivery_bucket.s3_bucket_id
+    target_bucket = module.s3_log_delivery_bucket.s3_bucket_id
     target_prefix = "log/"
   }
 
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "source-bucket" {
-  bucket   = module.appl1-bucket.s3_bucket_id
+  bucket   = module.source-bucket.s3_bucket_id
   rule {
     apply_server_side_encryption_by_default {
-      kms_master_key_id = aws_kms_key.appl1-kms.arn
+      kms_master_key_id = aws_kms_key.source-kms.arn
       sse_algorithm     = "aws:kms"
     }
   }
 }
 
-resource "aws_kms_key" "appl1-kms" {
+resource "aws_kms_key" "source-kms" {
   description             = "KMS key for encrypting source S3 buckets"
   deletion_window_in_days = 7
   enable_key_rotation     = true
@@ -45,10 +43,10 @@ resource "aws_kms_key" "appl1-kms" {
 
 #TFSEC Bucket logging for server access logs supressed. 
 #tfsec:ignore:aws-s3-enable-bucket-logging
-module "source_log_delivery_bucket" {
+module "s3_log_delivery_bucket" {
   source                   = "terraform-aws-modules/s3-bucket/aws"
   version                  = ">=3.5.0"
-  bucket                   = "${random_pet.prefix.id}-anycompany-bu1-appl1-log-bucket"
+  bucket                   = "${random_pet.prefix.id}-s3-log-bucket"
   control_object_ownership = true
   object_ownership         = "BucketOwnerEnforced"
   block_public_acls        = true
@@ -61,11 +59,11 @@ module "source_log_delivery_bucket" {
   }
 }
 
-resource "aws_s3_bucket_server_side_encryption_configuration" "appl1-log-bucket" {
-  bucket   = module.source_log_delivery_bucket.s3_bucket_id
+resource "aws_s3_bucket_server_side_encryption_configuration" "s3-log-bucket" {
+  bucket   = module.s3_log_delivery_bucket.s3_bucket_id
   rule {
     apply_server_side_encryption_by_default {
-      kms_master_key_id = aws_kms_key.appl1-kms.arn
+      kms_master_key_id = aws_kms_key.source-kms.arn
       sse_algorithm     = "aws:kms"
     }
   }

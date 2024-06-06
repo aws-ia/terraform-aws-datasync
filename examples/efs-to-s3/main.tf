@@ -14,11 +14,13 @@ module "s3_location" {
   source = "../../modules/datasync-locations"
   s3_locations = [
     {
-      name = "anycompany-bu1-appl1-logs"
+      name = "datasync-s3"
       # In this example a new S3 bucket is created in s3.tf
-      s3_bucket_arn = module.appl1-bucket.s3_bucket_arn
+      s3_bucket_arn = module.source-bucket.s3_bucket_arn
       subdirectory  = "/"
       create_role   = true
+      s3_source_bucket_kms_arn = aws_kms_key.source-kms.arn
+
       tags          = { project = "datasync-module" }
     }
   ]
@@ -49,7 +51,7 @@ module "backup_tasks" {
   datasync_tasks = [
     {
       name                     = "efs_to_s3"
-      source_location_arn      = module.s3_location.s3_locations["anycompany-bu1-appl1-logs"].arn
+      source_location_arn      = module.s3_location.s3_locations["datasync-s3"].arn
       destination_location_arn = module.efs_location.efs_locations["datasync-efs"].arn
       options = {
         posix_permissions = "NONE"
