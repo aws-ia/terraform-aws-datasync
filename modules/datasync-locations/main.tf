@@ -74,24 +74,7 @@ resource "aws_iam_role" "datasync_role_s3" {
           ]
           Effect   = "Allow"
           Resource = "${each.value.s3_bucket_arn}/*"
-        },
-        {
-          Sid    = "allowKMSAccess"
-          Effect = "Allow",
-          Action = [
-            "kms:Encrypt",
-            "kms:Decrypt",
-            "kms:DescribeKey",
-            "kms:GenerateDataKey",
-            "kms:PutRolePolicy",
-            "kms:Get*",
-            "kms:List*"
-          ],
-          Resource = [
-            "${each.value.s3_source_bucket_kms_arn}",
-            "${each.value.s3_dest_bucket_kms_arn}"
-          ]
-        }
+         }
       ]
     })
   }
