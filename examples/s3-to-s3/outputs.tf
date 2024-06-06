@@ -6,10 +6,10 @@ output "backup_tasks" {
   value = module.backup_tasks.datasync_tasks
 }
 
-output "datasync_role_arn" {
+output "datasync_src_role_arn" {
   value = module.s3_location.datasync_role_arn["source-bucket"]
 }
 
-output "datasync_role_arn" {
+output "datasync_dest_role_arn" {
   value = module.s3_location.datasync_role_arn["dest-bucket"]
 }
