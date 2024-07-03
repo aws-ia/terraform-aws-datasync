@@ -6,7 +6,8 @@ data "aws_availability_zones" "available" {}
 #VPC flow logs enabled. Skipping tfsec bug https://github.com/aquasecurity/tfsec/issues/1941
 #tfsec:ignore:aws-ec2-require-vpc-flow-logs-for-all-vpcs
 module "vpc" {
-  source = "terraform-aws-modules/vpc/aws"
+  source  = "terraform-aws-modules/vpc/aws"
+  version = ">= 1.0.0"
 
   cidr = var.vpc_cidr_block
 
