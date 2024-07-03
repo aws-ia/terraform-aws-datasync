@@ -1,9 +1,16 @@
+resource "aws_kms_key" "efs-kms" {
+  description             = "KMS key for encrypting source S3 buckets"
+  deletion_window_in_days = 7
+  enable_key_rotation     = true
+}
+
 resource "aws_efs_file_system" "efs" {
   creation_token = "datasync-efs-${random_pet.prefix.id}"
 
   performance_mode = "generalPurpose"
   throughput_mode  = "bursting"
   encrypted        = true
+  kms_key_id       = aws_kms_key.efs-kms.arn
 
   # lifecycle_policy {
   #   transition_to_ia = "AFTER_30_DAYS"

@@ -1,3 +1,5 @@
+data "aws_caller_identity" "current" {}
+
 #Versioning not added as per guidnance from the S3 to S3 Cross account tutorial DataSync documentation. Read https://docs.aws.amazon.com/datasync/latest/userguide/tutorial_s3-s3-cross-account-transfer.html
 #tfsec:ignore:aws-s3-enable-versioning
 module "source-bucket" {
@@ -29,9 +31,40 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "source-bucket" {
 }
 
 resource "aws_kms_key" "source-kms" {
-  description             = "KMS key for encrypting source S3 buckets"
-  deletion_window_in_days = 7
-  enable_key_rotation     = true
+  description              = "KMS key for encrypting source S3 buckets"
+  customer_master_key_spec = "SYMMETRIC_DEFAULT"
+  deletion_window_in_days  = 7
+  enable_key_rotation      = true
+}
+
+resource "aws_kms_key_policy" "source-kms-key-policy" {
+  key_id = aws_kms_key.source-kms.id
+  policy = jsonencode({
+    Id = "SourceKMSKeyPolicy"
+    Statement = [
+      {
+        Action = [
+          "kms:Encrypt",
+          "kms:Decrypt",
+          "kms:DescribeKey",
+          "kms:GenerateDataKey",
+          "kms:PutKeyPolicy",
+          "kms:Get*",
+          "kms:List*"
+        ]
+        Effect = "Allow"
+        Principal = {
+          AWS = [
+            "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+          ]
+        }
+
+        Resource = "${aws_kms_key.source-kms.arn}"
+        Sid      = "Enable IAM User Permissions"
+      },
+    ]
+    Version = "2012-10-17"
+  })
 }
 
 ##############################################################################
