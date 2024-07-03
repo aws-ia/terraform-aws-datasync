@@ -1,7 +1,38 @@
 resource "aws_kms_key" "efs-kms" {
-  description             = "KMS key for encrypting source S3 buckets"
-  deletion_window_in_days = 7
-  enable_key_rotation     = true
+  description              = "KMS key for encrypting EFS File System"
+  customer_master_key_spec = "SYMMETRIC_DEFAULT"
+  deletion_window_in_days  = 7
+  enable_key_rotation      = true
+}
+
+resource "aws_kms_key_policy" "efs-kms-key-policy" {
+  key_id = aws_kms_key.efs-kms.id
+  policy = jsonencode({
+    Id = "SourceKMSKeyPolicy"
+    Statement = [
+      {
+        Action = [
+          "kms:Encrypt",
+          "kms:Decrypt",
+          "kms:DescribeKey",
+          "kms:GenerateDataKey",
+          "kms:PutKeyPolicy",
+          "kms:Get*",
+          "kms:List*"
+        ]
+        Effect = "Allow"
+        Principal = {
+          AWS = [
+            "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+          ]
+        }
+
+        Resource = "${aws_kms_key.efs-kms.arn}"
+        Sid      = "Enable IAM User Permissions"
+      },
+    ]
+    Version = "2012-10-17"
+  })
 }
 
 resource "aws_efs_file_system" "efs" {
