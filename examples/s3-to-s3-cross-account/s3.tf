@@ -36,10 +36,11 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "source-bucket" {
 }
 
 resource "aws_kms_key" "source-kms" {
-  provider                = aws.cross-account
-  description             = "KMS key for encrypting source S3 buckets"
-  deletion_window_in_days = 7
-  enable_key_rotation     = true
+  provider                 = aws.cross-account
+  description              = "KMS key for encrypting source S3 buckets"
+  customer_master_key_spec = "SYMMETRIC_DEFAULT"
+  deletion_window_in_days  = 7
+  enable_key_rotation      = true
 }
 
 resource "aws_kms_key_policy" "source-kms-key-policy" {
@@ -149,9 +150,10 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "dest-bucket" {
 }
 
 resource "aws_kms_key" "dest-kms" {
-  description             = "KMS key for encrypting destination S3 buckets"
-  deletion_window_in_days = 7
-  enable_key_rotation     = true
+  description              = "KMS key for encrypting destination S3 buckets"
+  customer_master_key_spec = "SYMMETRIC_DEFAULT"
+  deletion_window_in_days  = 7
+  enable_key_rotation      = true
 }
 
 resource "aws_kms_key_policy" "dest-kms-key-policy" {

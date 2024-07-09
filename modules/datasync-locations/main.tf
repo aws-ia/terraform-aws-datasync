@@ -74,7 +74,7 @@ resource "aws_iam_role" "datasync_role_s3" {
           ]
           Effect   = "Allow"
           Resource = "${each.value.s3_bucket_arn}/*"
-         }
+        }
       ]
     })
   }

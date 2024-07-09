@@ -38,7 +38,7 @@ resource "aws_datasync_task" "datasync_tasks" {
   }
 
   dynamic "schedule" {
-    for_each = each.value.schedule_expression != null ?  toset([each.value.schedule_expression]) : toset([])
+    for_each = each.value.schedule_expression != null ? toset([each.value.schedule_expression]) : toset([])
     content {
       schedule_expression = each.value.schedule_expression
     }
