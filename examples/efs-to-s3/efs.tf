@@ -14,15 +14,18 @@ resource "aws_kms_key_policy" "efs-kms-key-policy" {
         Action = [
           "kms:Encrypt",
           "kms:Decrypt",
+          "kms:ReEncrypt",
           "kms:DescribeKey",
-          "kms:GenerateDataKey",
+          "kms:GenerateDataKey*",
           "kms:PutKeyPolicy",
           "kms:Get*",
-          "kms:List*"
+          "kms:List*",
+          "kms:CreateGrant"
         ]
         Effect = "Allow"
         Principal = {
           AWS = [
+            "${data.aws_caller_identity.current.arn}",
             "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
           ]
         }
