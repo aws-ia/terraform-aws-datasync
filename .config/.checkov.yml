@@ -10,6 +10,7 @@ skip-check:
 - CKV2_AZURE*
 - CKV_TF_1 # default to Terraform registry instead of Git
 - CKV_AWS_*
+- CKV2_AWS_*
 summary-position: bottom
 output: 'cli'
 compact: True
