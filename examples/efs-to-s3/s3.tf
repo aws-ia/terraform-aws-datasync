@@ -20,19 +20,6 @@ module "source-bucket" {
 
 }
 
-resource "aws_s3_bucket_lifecycle_configuration" "s3-source-bucket-lifecycle" {
-  bucket = module.source-bucket.s3_bucket_id
-
-  rule {
-   abort_incomplete_multipart_upload {
-     days_after_initiation = 7
-   }
-    filter {}
-    id = "log"
-    status = "Enabled"
-  }
-}
-
 resource "aws_s3_bucket_server_side_encryption_configuration" "source-bucket" {
   bucket = module.source-bucket.s3_bucket_id
   rule {
@@ -110,18 +97,5 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "s3-log-bucket" {
       kms_master_key_id = aws_kms_key.source-kms.arn
       sse_algorithm     = "aws:kms"
     }
-  }
-}
-
-resource "aws_s3_bucket_lifecycle_configuration" "s3-log-bucket-lifecycle" {
-  bucket = module.s3_log_delivery_bucket.s3_bucket_id
-
-  rule {
-   abort_incomplete_multipart_upload {
-     days_after_initiation = 7
-   }
-    filter {}
-    id = "log"
-    status = "Enabled"
   }
 }
