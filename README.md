@@ -1,7 +1,7 @@
 <!-- BEGIN_TF_DOCS -->
 # AWS DataSync Terraform Module
 
-This repository contains Terraform code which creates resources required to run DataSync task (https://https://aws.amazon.com/datasync/) to sync data within AWS and from on premises to AWS or vise-versa.
+This repository contains Terraform code which creates resources required to run a [DataSync task](https://https://aws.amazon.com/datasync/) to sync data within AWS and from on premises to AWS or vise-versa.
 
 AWS DataSync supports a wide variety of file and object storage systems on-premise and in AWS to facilitate data transfer.
 
@@ -21,109 +21,96 @@ For AWS storage transfers: DataSync works with the following AWS storage service
 - Amazon FSx for OpenZFS
 - Amazon FSx for NetApp ONTAP
 
-The module requires a source DataSync location and destination Datasync location to be declared. The default location types supported are S3 and EFS. For more details regarding the DataSync Locations S3 and EFS and their respective arguments can be found [here](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/datasync_location_s3.html) and [here](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/datasync_location_efs).
+The module requires a source DataSync location and destination Datasync location to be declared. The location types supported in the examples are S3 and EFS. For more details regarding the DataSync Locations S3 and EFS and their respective arguments can be found [here](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/datasync_location_s3.html) and [here](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/datasync_location_efs).
 
-## [DataSync Locations Module](modules/datasync-locations/)
+## Usage with DataSync Locations and Task Module
+
+- Link to EFS to S3 same account sync example for in-cloud transfers : [efs-to-s3](examples/efs-to-s3/)
+
+### [DataSync Locations Module](modules/datasync-locations/)
 
 S3 Location
-```hcl
-# S3 Datasync location
-resource "aws_datasync_location_s3" "s3_location" {
-  for_each = {
-    for location in var.s3_locations :
-    location.name => location # Assign key => value
-  }
-  s3_bucket_arn    = each.value.s3_bucket_arn
-  s3_storage_class = try(each.value.s3_storage_class, null)
-  subdirectory     = each.value.subdirectory != null ? each.value.subdirectory : "/"
-  tags             = each.value.tags != null ? each.value.tags : {}
-  agent_arns       = try(each.value.agent_arns, null)
-
-  s3_config {
-    bucket_access_role_arn = each.value.s3_config_bucket_access_role_arn != null ? each.value.s3_config_bucket_access_role_arn : aws_iam_role.datasync_role_s3[each.key].arn
-  }
-
-}
-```
-EFS Locatoin
-```hcl
-# EFS Datasync location
-resource "aws_datasync_location_efs" "efs_location" {
-  for_each = {
-    for location in var.efs_locations :
-    location.name => location # Assign key => value
-  }
-  efs_file_system_arn = each.value.efs_file_system_arn
-  subdirectory        = each.value.subdirectory != null ? each.value.subdirectory : "/"
-  tags                = each.value.tags != null ? each.value.tags : {}
-
-  ec2_config {
-    subnet_arn          = each.value.ec2_config_subnet_arn
-    security_group_arns = each.value.ec2_config_security_group_arns
-  }
-
-}
-```
-Two locations, one as source and other as destination are required for the Datasync task configuration. Once the locations are configured, they need to be passed as source location arn and destination location arn to the next module for Datasync task configuration.
-
-## [DataSync Task Module](modules/datasync-task/)
 
 ```hcl
-resource "aws_datasync_task" "datasync_tasks" {
-  for_each = {
-    for index, task in var.datasync_tasks :
-    index => task # Assign key => value
-  }
-  destination_location_arn = each.value.destination_location_arn
-  source_location_arn      = each.value.source_location_arn
-  cloudwatch_log_group_arn = try(each.value.cloudwatch_log_group_arn, null)
-
-  excludes {
-    filter_type = try(each.value.excludes.filter_type, null)
-    value       = try(each.value.excludes.value, null)
-  }
-  includes {
-    filter_type = try(each.value.includes.filter_type, null)
-    value       = try(each.value.includes.value, null)
-
-  }
-  ```
-
-  example :
-
-  ```hcl
-  module "backup_tasks" {
-  source = "../../modules/datasync-task"
-  datasync_tasks = [
+module "s3_location" {
+  source = "../../modules/datasync-locations"
+  s3_locations = [
     {
-      name                     = "s3-logs-backup"
-      source_location_arn      = module.s3_location.s3_locations["anycompany-bu1-appl1-logs"].arn
-      destination_location_arn = module.s3_location.s3_locations["anycompany-bu1-backups"].arn
-      options = {
-        posix_permissions = "NONE"
-        uid               = "NONE"
-        gid               = "NONE"
-      }
-      schedule_expression = "rate(1 hour)" # Run every hour
-      includes = {
-        "filter_type" = "SIMPLE_PATTERN"
-        "value"       = "/logs/"
-      }
-      excludes = {
-        "filter_type" = "SIMPLE_PATTERN"
-        "value"       = "*/temp"
-      }
+      name = "datasync-s3"
+      s3_bucket_arn            = "terraform-s3-bucket-12345"
+      subdirectory             = "/"
+      create_role              = true
+      s3_source_bucket_kms_arn = "aws_kms_key_arn"
+
+      tags = { project = "datasync-module" }
     }
   ]
 }
 ```
-Refer to s3 to s3 Datasync example for an end to end example : [s3-to-s3](examples/s3-to-s3/)
 
-## Usage with DataSync Locations and Task module
+Note that for Datasync s3 Locations module allows you to create a DataSync IAM role by setting ```create_role = true
+```. This IAM role has the required [S3 permissions](https://docs.aws.amazon.com/datasync/latest/userguide/create-s3-location.html#create-role-manually) allowing DataSync service to seamlessly access the S3 bucket.
 
-- Link to S3 to S3 same account sync example for in-cloud sync : [s3-to-s3](examples/s3-to-s3/)
-- Link to S3 to S3 cross account sync example for in-cloud sync : [s3-to-s3-cross-account](examples/s3-to-s3-cross-account/)
-- Link to EFS to S3 same account sync example for in-cloud sync : [efs-to-s3](examples/efs-to-s3/)
+EFS Locatoin
+
+```hcl
+module "efs_location" {
+  source = "../../modules/datasync-locations"
+  efs_locations = [
+    {
+      name = "datasync-efs"
+      # In this example a new EFS file system is created in efs.tf
+      efs_file_system_arn            = "arn:aws:elasticfilesystem:us-east-1:123456789012:filesystem/fs-123456789"
+      ec2_config_subnet_arn          = "arn:aws:ec2:us-east-1:123456789012:subnet/subnet-1234567890abcde"
+      ec2_config_security_group_arns = [arn:aws:ec2:us-east-1:123456789012:security-group/sg-1234567890abcde]
+      tags                           = { project = "datasync-module" }
+    }
+  ]
+
+  # The mount target should exist before we create the EFS location
+  depends_on = [aws_efs_mount_target.efs_subnet_mount_target]
+
+}
+```
+
+The examples also includes "aws\_kms\_key" resource block to create a KMS key with a key policy that restricts the use of the key based on same acccount and cross account access requirements. Refer to this [link](https://docs.aws.amazon.com/kms/latest/developerguide/key-policies.html) for information.
+
+### [DataSync Task Module](modules/datasync-task/)
+
+Two locations, one as source and other as destination are required for the [Datasync task configuration](https://docs.aws.amazon.com/datasync/latest/userguide/create-task-how-to.html). Once the locations are configured, they need to be passed as source location arn and destination location arn to the next module for Datasync task configuration.For more details regarding the DataSync Task configuration and their respective arguments can be found [here](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/datasync_task).
+  Example :
+
+```hcl
+module "backup_tasks" {
+  source = "../../modules/datasync-task"
+  datasync_tasks = [
+    {
+      name                     = "efs_to_s3"
+      source_location_arn      = module.s3_location.s3_locations["datasync-s3"].arn
+      destination_location_arn = module.efs_location.efs_locations["datasync-efs"].arn
+        options = {
+          posix_permissions = "NONE"
+          uid               = "NONE"
+          gid               = "NONE"
+        }
+      schedule_expression = "cron(0 6 ? * MON-FRI *)" # Run at 6:00 am (UTC) every Monday through Friday:
+    }
+  ]
+}
+```
+
+## Other usage examples with DataSync Locations and Task module
+
+- Link to S3 to S3 same account sync example for in-cloud transfers : [s3-to-s3](examples/s3-to-s3/)
+- Link to S3 to S3 cross account sync example for in-cloud transfers : [s3-to-s3-cross-account](examples/s3-to-s3-cross-account/)
+
+## Support & Feedback
+
+DataSync module for Terraform is maintained by AWS Solution Architects. It is not part of an AWS service and support is provided best-effort by the AWS Storage community.
+
+To post feedback, submit feature ideas, or report bugs, please use the [Issues section](https://github.com/aws-ia/terraform-aws-datasync/pulls) of this GitHub repo.
+
+If you are interested in contributing to the Storage Gateway module, see the [Contribution guide](https://github.com/aws-ia/terraform-aws-datasync/blob/dev/CONTRIBUTING.md).
 
 ## Requirements
 
@@ -162,7 +149,7 @@ No modules.
 
 | Name | Description |
 |------|-------------|
-| <a name="output_datasync_role_arn"></a> [datasync\_role\_arn](#output\_datasync\_role\_arn) | n/a |
-| <a name="output_efs_locations"></a> [efs\_locations](#output\_efs\_locations) | n/a |
-| <a name="output_s3_locations"></a> [s3\_locations](#output\_s3\_locations) | n/a |
+| <a name="output_datasync_role_arn"></a> [datasync\_role\_arn](#output\_datasync\_role\_arn) | DataSync Task ARN |
+| <a name="output_efs_locations"></a> [efs\_locations](#output\_efs\_locations) | DataSync EFS Location ARN |
+| <a name="output_s3_locations"></a> [s3\_locations](#output\_s3\_locations) | DataSync S3 Location ARN |
 <!-- END_TF_DOCS -->
