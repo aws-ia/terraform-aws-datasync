@@ -78,6 +78,7 @@ The examples also includes "aws\_kms\_key" resource block to create a KMS key wi
 ### [DataSync Task Module](modules/datasync-task/)
 
 Two locations, one as source and other as destination are required for the [Datasync task configuration](https://docs.aws.amazon.com/datasync/latest/userguide/create-task-how-to.html). Once the locations are configured, they need to be passed as source location arn and destination location arn to the next module for Datasync task configuration.For more details regarding the DataSync Task configuration and their respective arguments can be found [here](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/datasync_task).
+
   Example :
 
 ```hcl
