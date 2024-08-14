@@ -7,6 +7,9 @@ RUN cd /tmp && \
 
 RUN curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
 
-RUN cd /tmp && \
-    wget https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz && \
-    tar -C /usr/local/bin -xzf go${GO_VERSION}.linux-amd64.tar.gz && chmod 755 /usr/local/bin/go
+# RUN cd /tmp && \
+#     wget https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz && \
+#     tar -C /usr/local/bin -xzf go${GO_VERSION}.linux-amd64.tar.gz && chmod 755 /usr/local/bin/go && \
+#     export PATH=$PATH:/usr/local/bin/go
+
+RUN goenv install 1.20.3 && goenv global 1.20.3
