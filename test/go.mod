@@ -1,9 +1,10 @@
 module github.com/prabirsekhri/terraform-aws-datasync
 
-go 1.20
+go 1.21
+
+toolchain go1.22.6
 
 require (
-	github.com/aws/aws-sdk-go-v2 v1.26.1
 	github.com/aws/aws-sdk-go-v2/config v1.27.10
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.28.6
 	github.com/gruntwork-io/terratest v0.46.11
@@ -18,6 +19,7 @@ require (
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/aws/aws-sdk-go v1.51.13 // indirect
+	github.com/aws/aws-sdk-go-v2 v1.26.1 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.10 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.1 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.5 // indirect
