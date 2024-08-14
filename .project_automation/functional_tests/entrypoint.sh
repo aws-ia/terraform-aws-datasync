@@ -14,8 +14,6 @@ cd ${PROJECT_PATH}
 echo "Running Terratest"
 cd test
 rm -f go.mod
-/usr/local/bin/go/bin/go version
-ls -la /usr/local/bin/go/bin
 /usr/local/bin/go/bin/go mod init github.com/aws-ia/terraform-project-ephemeral 
 /usr/local/bin/go/bin/go mod tidy
 /usr/local/bin/go/bin/go install github.com/gruntwork-io/terratest/modules/terraform
