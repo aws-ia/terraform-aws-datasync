@@ -9,15 +9,15 @@
 #######################################
 
 provider "aws" {
-  alias   = "src"
-  profile = var.owner_profile
+  alias   = "source-account"
+  profile = var.source_account_profile
   region  = var.region
 }
 
 provider "aws" {
-  alias   = "cross-account"
+  alias   = "dest-account"
   region  = var.region
-  profile = var.cross_account_profile
+  profile = var.dest_account_profile
 }
 
 # random pet prefix to name resources
@@ -26,17 +26,17 @@ resource "random_pet" "prefix" {
 }
 
 data "aws_caller_identity" "cross-account" {
-  provider = aws.cross-account
+  provider = aws.dest-account
 }
 
 ########################################################
-# Create Datasync Location IAM role for Source Location
+# Create Datasync Location IAM role for Source (Dest) Location
 ########################################################
 
 #TFSEC High warning supressed for IAM policy document uses sensitive action 's3:AbortMultipartUpload' on wildcarded resource. 
 # Ref Doc : https://docs.aws.amazon.com/datasync/latest/userguide/create-s3-location.html#create-role-manually
 #tfsec:ignore:aws-iam-no-policy-wildcards
-resource "aws_iam_role" "datasync_source_s3_access_role" {
+resource "aws_iam_role" "datasync_dest_s3_access_role" {
 
 
   assume_role_policy = jsonencode({
@@ -66,7 +66,7 @@ resource "aws_iam_role" "datasync_source_s3_access_role" {
             "s3:ListBucketMultipartUploads",
           ]
           Effect   = "Allow"
-          Resource = "${module.source_bucket.s3_bucket_arn}"
+          Resource = "${module.destination_bucket.s3_bucket_arn}"
         },
         {
           Sid = "allowBucketObjects"
@@ -78,23 +78,42 @@ resource "aws_iam_role" "datasync_source_s3_access_role" {
             "s3:PutObjectTagging",
             "s3:GetObjectTagging",
             "s3:PutObject",
-          ]
+          ],
           Effect   = "Allow"
-          Resource = "${module.source_bucket.s3_bucket_arn}/*"
+          Resource = "${module.destination_bucket.s3_bucket_arn}/*"
+        },
+        {
+          Sid = "allowKMSAccess"
+          Action = [
+            "kms:Encrypt",
+            "kms:Decrypt",
+            "kms:DescribeKey",
+            "kms:GenerateDataKey",
+            "kms:PutRolePolicy",
+            "kms:ScheduleKeyDeletion",
+            "kms:Get*",
+            "kms:List*"
+          ],
+          Effect = "Allow"
+          Resource = [
+            # "${aws_kms_key.source-kms.arn}",
+            "${aws_kms_key.dest-kms.arn}"
+          ]
         }
       ]
     })
+
   }
 }
-###########################################
-# Update Bucket policy on cross account S3
-###########################################
+##################################################
+# Update Bucket policy on cross account S3 Bucket
+##################################################
 
 data "aws_caller_identity" "current" {}
 
 resource "aws_s3_bucket_policy" "allow_access_from_another_account" {
-  provider = aws.cross-account
-  bucket   = module.source_bucket.s3_bucket_id
+  provider = aws.dest-account
+  bucket   = module.destination_bucket.s3_bucket_id
 
   policy = <<EOF
 {
@@ -105,7 +124,8 @@ resource "aws_s3_bucket_policy" "allow_access_from_another_account" {
       "Effect": "Allow",
       "Principal": {
         "AWS": [
-            "${aws_iam_role.datasync_source_s3_access_role.arn}",
+            "${aws_iam_role.datasync_dest_s3_access_role.arn}",
+            "${module.s3_source_location.datasync_role_arn["source-bucket"]}",
             "${data.aws_caller_identity.current.arn}"
         ]
       },
@@ -122,8 +142,8 @@ resource "aws_s3_bucket_policy" "allow_access_from_another_account" {
         "s3:PutObjectTagging"
       ],
       "Resource": [
-        "${module.source_bucket.s3_bucket_arn}/*",
-        "${module.source_bucket.s3_bucket_arn}"
+        "${module.destination_bucket.s3_bucket_arn}/*",
+        "${module.destination_bucket.s3_bucket_arn}"
         ]
     }
   ]
@@ -140,24 +160,9 @@ module "s3_source_location" {
 
   s3_locations = [
     {
-      name                             = "source-bucket"
-      s3_bucket_arn                    = module.source_bucket.s3_bucket_arn # In this example a new S3 bucket is created in s3.tf
-      s3_config_bucket_access_role_arn = aws_iam_role.datasync_source_s3_access_role.arn
-      subdirectory                     = "/"
-      create_role                      = false
-      tags                             = { project = "datasync-module" }
-    }
-  ]
-  depends_on = [aws_s3_bucket_policy.allow_access_from_another_account]
-
-}
-
-module "s3_dest_location" {
-  source = "../../modules/datasync-locations"
-  s3_locations = [
-    {
-      name                     = "dest-bucket"
-      s3_bucket_arn            = module.destination_bucket.s3_bucket_arn # In this example a new S3 bucket is created in s3.tf
+      name          = "source-bucket"
+      s3_bucket_arn = module.source_bucket.s3_bucket_arn # In this example a new S3 bucket is created in s3.tf
+      # s3_config_bucket_access_role_arn = aws_iam_role.datasync_source_s3_access_role.arn
       subdirectory             = "/"
       create_role              = true
       s3_source_bucket_kms_arn = aws_kms_key.source-kms.arn
@@ -165,6 +170,26 @@ module "s3_dest_location" {
       tags                     = { project = "datasync-module" }
     }
   ]
+  #depends_on = [aws_s3_bucket_policy.allow_access_from_another_account]
+
+}
+
+module "s3_dest_location" {
+  source = "../../modules/datasync-locations"
+  s3_locations = [
+    {
+      name                             = "dest-bucket"
+      s3_bucket_arn                    = module.destination_bucket.s3_bucket_arn # In this example a new S3 bucket is created in s3.tf
+      s3_config_bucket_access_role_arn = aws_iam_role.datasync_dest_s3_access_role.arn
+      subdirectory                     = "/"
+      create_role                      = false
+      # s3_source_bucket_kms_arn = aws_kms_key.source-kms.arn
+      # s3_dest_bucket_kms_arn   = aws_kms_key.dest-kms.arn
+      tags = { project = "datasync-module" }
+    }
+  ]
+  depends_on = [aws_s3_bucket_policy.allow_access_from_another_account]
+
 }
 
 #######################
