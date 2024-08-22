@@ -4,9 +4,7 @@
 #Versioning disabled as per guidnance from the S3 to S3 Cross account tutorial DataSync documentation. Read https://docs.aws.amazon.com/datasync/latest/userguide/tutorial_s3-s3-cross-account-transfer.html
 #tfsec:ignore:aws-s3-enable-versioning
 module "source_bucket" {
-  providers = {
-    aws = aws.cross-account
-  }
+
   source                   = "terraform-aws-modules/s3-bucket/aws"
   version                  = ">=3.5.0"
   bucket                   = "${random_pet.prefix.id}-source-bucket"
@@ -25,8 +23,8 @@ module "source_bucket" {
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "source-bucket" {
-  provider = aws.cross-account
-  bucket   = module.source_bucket.s3_bucket_id
+
+  bucket = module.source_bucket.s3_bucket_id
   rule {
     apply_server_side_encryption_by_default {
       kms_master_key_id = aws_kms_key.source-kms.arn
@@ -36,16 +34,15 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "source-bucket" {
 }
 
 resource "aws_kms_key" "source-kms" {
-  provider                 = aws.cross-account
-  description              = "KMS key for encrypting source S3 buckets"
-  customer_master_key_spec = "SYMMETRIC_DEFAULT"
-  deletion_window_in_days  = 7
-  enable_key_rotation      = true
+
+  description             = "KMS key for encrypting source S3 buckets"
+  deletion_window_in_days = 7
+  enable_key_rotation     = true
 }
 
 resource "aws_kms_key_policy" "source-kms-key-policy" {
-  provider = aws.cross-account
-  key_id   = aws_kms_key.source-kms.id
+
+  key_id = aws_kms_key.source-kms.id
   policy = jsonencode({
     Id = "SourceKMSKeyPolicy"
     Statement = [
@@ -56,14 +53,15 @@ resource "aws_kms_key_policy" "source-kms-key-policy" {
           "kms:DescribeKey",
           "kms:GenerateDataKey",
           "kms:PutKeyPolicy",
+          "kms:ScheduleKeyDeletion",
           "kms:Get*",
           "kms:List*"
         ]
         Effect = "Allow"
         Principal = {
           AWS = [
-            "${aws_iam_role.datasync_source_s3_access_role.arn}",
-            "${module.s3_dest_location.datasync_role_arn["dest-bucket"]}",
+            "${aws_iam_role.datasync_dest_s3_access_role.arn}",
+            "${module.s3_source_location.datasync_role_arn["source-bucket"]}",
             "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root",
             "arn:aws:iam::${data.aws_caller_identity.cross-account.account_id}:root"
 
@@ -85,9 +83,7 @@ resource "aws_kms_key_policy" "source-kms-key-policy" {
 #TFSEC Bucket logging for server access logs supressed. 
 #tfsec:ignore:aws-s3-enable-bucket-logging
 module "source_log_delivery_bucket" {
-  providers = {
-    aws = aws.cross-account
-  }
+  
   source                   = "terraform-aws-modules/s3-bucket/aws"
   version                  = ">=3.5.0"
   bucket                   = "${random_pet.prefix.id}-source-log-bucket"
@@ -104,8 +100,8 @@ module "source_log_delivery_bucket" {
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "source-log-bucket" {
-  provider = aws.cross-account
-  bucket   = module.source_log_delivery_bucket.s3_bucket_id
+
+  bucket = module.source_log_delivery_bucket.s3_bucket_id
   rule {
     apply_server_side_encryption_by_default {
       kms_master_key_id = aws_kms_key.source-kms.arn
@@ -121,6 +117,9 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "source-log-bucket
 #Versioning disabled as per guidnance from the S3 to S3 Cross account tutorial DataSync documentation. Read https://docs.aws.amazon.com/datasync/latest/userguide/tutorial_s3-s3-cross-account-transfer.html
 #tfsec:ignore:aws-s3-enable-versioning
 module "destination_bucket" {
+  providers = {
+    aws = aws.dest-account
+  }
   source                   = "terraform-aws-modules/s3-bucket/aws"
   version                  = ">=3.5.0"
   bucket                   = "${random_pet.prefix.id}-dest-bucket"
@@ -139,7 +138,8 @@ module "destination_bucket" {
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "dest-bucket" {
-  bucket = module.destination_bucket.s3_bucket_id
+  provider = aws.dest-account
+  bucket   = module.destination_bucket.s3_bucket_id
 
   rule {
     apply_server_side_encryption_by_default {
@@ -150,16 +150,17 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "dest-bucket" {
 }
 
 resource "aws_kms_key" "dest-kms" {
-  description              = "KMS key for encrypting destination S3 buckets"
-  customer_master_key_spec = "SYMMETRIC_DEFAULT"
-  deletion_window_in_days  = 7
-  enable_key_rotation      = true
+  provider                = aws.dest-account
+  description             = "KMS key for encrypting destination S3 buckets"
+  deletion_window_in_days = 7
+  enable_key_rotation     = true
 }
 
 resource "aws_kms_key_policy" "dest-kms-key-policy" {
-  key_id = aws_kms_key.dest-kms.id
+  provider = aws.dest-account
+  key_id   = aws_kms_key.dest-kms.id
   policy = jsonencode({
-    Id = "SourceKMSKeyPolicy"
+    Id = "DestKMSKeyPolicy"
     Statement = [
       {
         Action = [
@@ -168,16 +169,18 @@ resource "aws_kms_key_policy" "dest-kms-key-policy" {
           "kms:DescribeKey",
           "kms:GenerateDataKey",
           "kms:PutKeyPolicy",
+          "kms:ScheduleKeyDeletion",
           "kms:Get*",
           "kms:List*"
         ]
         Effect = "Allow"
         Principal = {
           AWS = [
-            "${aws_iam_role.datasync_source_s3_access_role.arn}",
-            "${module.s3_dest_location.datasync_role_arn["dest-bucket"]}",
+            "${aws_iam_role.datasync_dest_s3_access_role.arn}",
+            "${module.s3_source_location.datasync_role_arn["source-bucket"]}",
             "${data.aws_caller_identity.current.arn}",
-            "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+            "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root",
+            "arn:aws:iam::${data.aws_caller_identity.cross-account.account_id}:root"
           ]
         }
 
@@ -197,6 +200,9 @@ resource "aws_kms_key_policy" "dest-kms-key-policy" {
 #TFSEC Bucket logging for server access logs supressed. 
 #tfsec:ignore:aws-s3-enable-bucket-logging
 module "dest_log_delivery_bucket" {
+  providers = {
+    aws = aws.dest-account
+  }
   source                   = "terraform-aws-modules/s3-bucket/aws"
   version                  = ">=3.5.0"
   bucket                   = "${random_pet.prefix.id}-dest-log-bucket"
@@ -213,7 +219,8 @@ module "dest_log_delivery_bucket" {
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "dest-log-bucket" {
-  bucket = module.dest_log_delivery_bucket.s3_bucket_id
+  provider = aws.dest-account
+  bucket   = module.dest_log_delivery_bucket.s3_bucket_id
   rule {
     apply_server_side_encryption_by_default {
       kms_master_key_id = aws_kms_key.source-kms.arn

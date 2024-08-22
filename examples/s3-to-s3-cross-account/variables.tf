@@ -3,13 +3,13 @@ variable "region" {
   default     = "us-east-1"
 }
 
-variable "owner_profile" {
-  description = "The AWS Profile where all the DataSync resources will be created i.e., DataSync locations, Tasks and Executions"
+variable "source_account_profile" {
+  description = "The AWS Profile for Destination Account where all the DataSync resources will be created i.e., DataSync locations, Tasks and Executions"
   default     = "default"
 }
 
-variable "cross_account_profile" {
-  description = "The AWS Profile for Cross Account where resources needed for the cross account DataSync location configuration are created"
-  default     = "cross-account"
+variable "dest_account_profile" {
+  description = "The AWS Profile for Source Account where resources needed for the source DataSync location configuration are created"
+  default     = "dest-account"
 }
 
