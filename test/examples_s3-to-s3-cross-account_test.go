@@ -19,10 +19,16 @@ func TestS3toS3CrossAccount(t *testing.T) {
 		TerraformDir: "../examples/s3-to-s3-cross-account",
 	}
 
-	// Read secret from Secrets Manager
-	err := updateAWSCredentials("/terratest/examples/s3-to-s3-cross-account")
-	if err != nil {
-		fmt.Println("Error updating AWS credentials:", err)
+	// check if the DISABLE_SECRETS_MANAGER_UPDATE environment variable is set to 1
+	disableSecretsManagerUpdate := os.Getenv("DISABLE_SECRETS_MANAGER_UPDATE")
+	// if the environment variable is not set or is set to 0, update the AWS credentials file
+	if disableSecretsManagerUpdate != "1" {
+		err := updateAWSCredentials("/terratest/examples/s3-to-s3-cross-account")
+		if err != nil {
+			fmt.Println("ERROR: Could not update AWS credentials:", err)
+		}
+	} else{
+		fmt.Println("INFO: Skipping AWS credentials update due to DISABLE_SECRETS_MANAGER_UPDATE environment variable being set")
 	}
 
 	defer terraform.Destroy(t, terraformOptions)
@@ -41,6 +47,7 @@ func updateAWSCredentials(secretName string) error {
 	svc := secretsmanager.NewFromConfig(cfg)
 
 	// Retrieve the secret value
+	fmt.Println("INFO: Reading credential from secrets manager path: " + secretName)
 	result, err := svc.GetSecretValue(context.TODO(), &secretsmanager.GetSecretValueInput{
 		SecretId: &secretName,
 	})

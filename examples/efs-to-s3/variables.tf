@@ -1,3 +1,9 @@
+variable "region" {
+  type        = string
+  description = "The AWS region for this deployment"
+  default     = "us-east-1"
+}
+
 variable "vpc_cidr_block" {
   type        = string
   description = "VPC CIDR block for the creation of example VPC and subnets"

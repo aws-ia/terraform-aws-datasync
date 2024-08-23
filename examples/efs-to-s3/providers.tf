@@ -12,6 +12,10 @@ terraform {
   }
 }
 
+provider "aws" {
+  region = var.region
+}
+
 provider "awscc" {
   user_agent = [{
     product_name    = "terraform-awscc-"
