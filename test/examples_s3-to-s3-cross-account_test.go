@@ -69,8 +69,8 @@ func updateAWSCredentials(secretName string) error {
 		secretString = *result.SecretString
 	} else {
 		// Handle the case where the secret is in binary format, not covered in this example
-		fmt.Println("Secret is not in string format")
-		return fmt.Errorf("secret is not in string format")
+		fmt.Println("ERROR: Secrets Manager secret value is not in string format")
+		return fmt.Errorf("ERROR: Secrets Manager secret value is not in string format")
 	}
 
 	// Replace spaces with newlines
