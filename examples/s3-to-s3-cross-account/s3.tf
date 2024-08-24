@@ -118,7 +118,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "source-log-bucket
 #tfsec:ignore:aws-s3-enable-versioning
 module "destination_bucket" {
   providers = {
-    aws = aws.dest-account
+    aws = aws.destination-account
   }
   source                   = "terraform-aws-modules/s3-bucket/aws"
   version                  = ">=3.5.0"
@@ -138,7 +138,7 @@ module "destination_bucket" {
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "dest-bucket" {
-  provider = aws.dest-account
+  provider = aws.destination-account
   bucket   = module.destination_bucket.s3_bucket_id
 
   rule {
@@ -150,14 +150,14 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "dest-bucket" {
 }
 
 resource "aws_kms_key" "dest-kms" {
-  provider                = aws.dest-account
+  provider                = aws.destination-account
   description             = "KMS key for encrypting destination S3 buckets"
   deletion_window_in_days = 7
   enable_key_rotation     = true
 }
 
 resource "aws_kms_key_policy" "dest-kms-key-policy" {
-  provider = aws.dest-account
+  provider = aws.destination-account
   key_id   = aws_kms_key.dest-kms.id
   policy = jsonencode({
     Id = "DestKMSKeyPolicy"
@@ -201,7 +201,7 @@ resource "aws_kms_key_policy" "dest-kms-key-policy" {
 #tfsec:ignore:aws-s3-enable-bucket-logging
 module "dest_log_delivery_bucket" {
   providers = {
-    aws = aws.dest-account
+    aws = aws.destination-account
   }
   source                   = "terraform-aws-modules/s3-bucket/aws"
   version                  = ">=3.5.0"
@@ -219,7 +219,7 @@ module "dest_log_delivery_bucket" {
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "dest-log-bucket" {
-  provider = aws.dest-account
+  provider = aws.destination-account
   bucket   = module.dest_log_delivery_bucket.s3_bucket_id
   rule {
     apply_server_side_encryption_by_default {
