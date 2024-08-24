@@ -15,7 +15,7 @@ provider "aws" {
 }
 
 provider "aws" {
-  alias   = "dest-account"
+  alias   = "destination-account"
   region  = var.region
   profile = var.dest_account_profile
 }
@@ -26,7 +26,7 @@ resource "random_pet" "prefix" {
 }
 
 data "aws_caller_identity" "cross-account" {
-  provider = aws.dest-account
+  provider = aws.destination-account
 }
 
 ########################################################
@@ -112,7 +112,7 @@ resource "aws_iam_role" "datasync_dest_s3_access_role" {
 data "aws_caller_identity" "current" {}
 
 resource "aws_s3_bucket_policy" "allow_access_from_another_account" {
-  provider = aws.dest-account
+  provider = aws.destination-account
   bucket   = module.destination_bucket.s3_bucket_id
 
   policy = <<EOF
