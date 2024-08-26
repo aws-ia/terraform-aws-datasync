@@ -14,10 +14,10 @@ cd ${PROJECT_PATH}
 echo "Running Terratest"
 cd test
 rm -f go.mod
-# go mod init github.com/aws-ia/terraform-project-ephemeral 
-# go mod tidy
-# go install github.com/gruntwork-io/terratest/modules/terraform
-# go test -timeout 45m
+go mod init github.com/aws-ia/terraform-project-ephemeral 
+go mod tidy
+go install github.com/gruntwork-io/terratest/modules/terraform
+go test -timeout 45m
 
 yum list installed
  
