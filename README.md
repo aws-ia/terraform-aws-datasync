@@ -135,6 +135,7 @@ aws_access_key_id = xxxxxxxxxx
 aws_secret_access_key = xxxxxxxxxxxxx
 
 ```
+
 **Environment variables:**
 
 ```hcl
