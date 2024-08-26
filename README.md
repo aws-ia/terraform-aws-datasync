@@ -127,7 +127,7 @@ Providers are configured as environment variables as below with the correspondin
 ``` file :**
 
 ```
-[destination-account]
+[source-account]
 aws_access_key_id = xxxxxxxxxx
 aws_secret_access_key = xxxxxxxxxxxxx
 [destination-account]
