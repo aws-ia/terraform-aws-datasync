@@ -48,10 +48,10 @@ module "s3_location" {
 }
 ```
 
-Note that for Datasync s3 Locations module allows you to create a DataSync IAM role by setting ```create_role = true
+Note that the Datasync S3 locations module allows you to create a DataSync IAM role by setting ```create_role = true
 ```. This IAM role has the required [S3 permissions](https://docs.aws.amazon.com/datasync/latest/userguide/create-s3-location.html#create-role-manually) allowing DataSync service to seamlessly access the S3 bucket.
 
-EFS Locatoin
+EFS Location
 
 ```hcl
 module "efs_location" {
@@ -73,7 +73,7 @@ module "efs_location" {
 }
 ```
 
-The examples also includes "aws\_kms\_key" resource block to create a KMS key with a key policy that restricts the use of the key based on same acccount and cross account access requirements. Refer to this [link](https://docs.aws.amazon.com/kms/latest/developerguide/key-policies.html) for information.
+The examples also includes "aws\_kms\_key" resource block to create a KMS key with a key policy that restricts the use of the key based on same account and cross account access requirements. Refer to this [link](https://docs.aws.amazon.com/kms/latest/developerguide/key-policies.html) for information.
 
 ### [DataSync Task Module](modules/datasync-task/)
 
@@ -100,10 +100,112 @@ module "backup_tasks" {
 }
 ```
 
+## Example with DataSync Locations and Task module in a Cross Account Use Case
+
+AWS DataSync can transfer data between Amazon S3 buckets that belong to different AWS accounts. Here's what a cross-account transfer using DataSync can look like :
+
+- Source account: The AWS account for managing the S3 bucket that you need to transfer data from.
+- Destination account: The AWS account for managing the S3 bucket that you need to transfer data to.
+
+Here is the paragraph with the grammar and spelling corrected:
+
+With the launch of the S3 feature Amazon S3 Object Ownership, S3 bucket-level settings can be used to disable access control lists (ACLs) and take ownership of every object in your bucket. It is no longer necessary to configure a cross-account AWS DataSync task to ensure that the destination account owns all of the objects copied over to its S3 bucket. Now, you can just use S3 Object Ownership to ensure that your destination account automatically owns all of the objects copied over to its S3 bucket.
+
+It's important that all the data that you transfer to the S3 bucket from another account belongs to your destination account. To ensure that this account owns the data, disable the bucket's access control lists (ACLs) prior to the data transfer.
+
+This example creates the necessary DataSync resources, including DataSync locations (Source and Destination), Task, and associated IAM roles for S3 access in the source AWS account. The resources related to the destination location (target S3 bucket) are created in the Destination AWS account. It uses IAM policies and resource-based bucket policies to manage cross-account access to DataSync.
+
+AWS provider is used to interact with the resources in the cross accounts.The AWS Provider can source credentials and other settings from the shared configuration and credentials files. By default, these files are located at ```$HOME/.aws/credentials
+``` on Linux and macOS, and ```%USERPROFILE%\.aws\config
+``` and ```%USERPROFILE%\.aws\credentials
+``` on Windows.
+
+Providers are configured as environment variables as below with the corresponding profiles configured at ```~/.aws/credentials
+```. Here is a quick reference on [how to configure a credential file](https://docs.aws.amazon.com/cli/v1/userguide/cli-configure-files.html) and use [AWS Provider](https://registry.terraform.io/providers/hashicorp/aws/latest/docs#static-credentials).
+
+**Example of ```~/.aws/credentials
+``` file :**
+
+```
+[destination-account]
+aws_access_key_id = xxxxxxxxxx
+aws_secret_access_key = xxxxxxxxxxxxx
+[destination-account]
+aws_access_key_id = xxxxxxxxxx
+aws_secret_access_key = xxxxxxxxxxxxx
+
+```
+**Environment variables:**
+
+```hcl
+
+variable "source_account_profile" {
+  description = "The AWS Profile for Destination Account where all the DataSync resources will be created i.e., DataSync locations, Tasks and Executions"
+  default     = "source-account"
+}
+
+variable "dest_account_profile" {
+  description = "The AWS Profile for Source Account where resources needed for the source DataSync location configuration are created"
+  default     = "destination-account"
+}
+
+```
+
+**Provider config block:**
+
+```hcl
+
+provider "aws" {
+  alias   = "source-account"
+  profile = var.source_account_profile
+  region  = var.region
+}
+
+provider "aws" {
+  alias   = "dest-account"
+  profile = var.dest_account_profile
+  region  = var.region
+}
+
+```
+
+To configure DataSync for transferring data between accounts, you need to set up permissions in both the source and destination AWS accounts. In the source account, create an IAM role that allows DataSync to transfer data to the destination account's bucket. In the destination account, update the S3 bucket policy to grant access to the IAM role created in the source account.
+
+Datasync Location and Task Modules are generic and do not have any cross account provider configuration. Therefore, IAM role that gives DataSync the permissions to transfer data to your destination account bucket must be created outside of the module and passed as parameter for source location configuration.
+
+```hcl
+
+module "s3_dest_location" {
+  source = "../../modules/datasync-locations"
+  s3_locations = [
+    {
+      name                             = "dest-bucket"
+      s3_bucket_arn                    = "terraform-s3-dest-bucket-12345"
+      s3_config_bucket_access_role_arn = aws_iam_role.datasync_dest_s3_access_role.arn
+      subdirectory                     = "/"
+      create_role                      = false
+      tags = { project = "datasync-module" }
+    }
+  ]
+  depends_on = [aws_s3_bucket_policy.allow_access_from_another_account]
+
+}
+```
+
+By default ```create_role
+``` is set to ```false
+``` for the destination location as the IAM role is created outside the [DataSync Locations Module](modules/datasync-locations/).
+
+The ```depends_on
+``` meta-argument ensures that terraform creates the destination Datasync location only after the destination account S3 bucket policy is updated to allowing the source account IAM role to transfer data to destination account bucket.
+
+**Note:** Task creation would fail if the destination account's S3 bucket policy does not allow the source account's IAM role, as DataSync would verify read/write access to the source and destination S3 buckets before configuring the task.
+
+- Here is an end-to-end example for S3 to S3 cross account data transfers : [s3-to-s3-cross-account](examples/s3-to-s3-cross-account/)
+
 ## Other usage examples with DataSync Locations and Task module
 
 - Link to S3 to S3 same account sync example for in-cloud transfers : [s3-to-s3](examples/s3-to-s3/)
-- Link to S3 to S3 cross account sync example for in-cloud transfers : [s3-to-s3-cross-account](examples/s3-to-s3-cross-account/)
 
 ## Support & Feedback
 
