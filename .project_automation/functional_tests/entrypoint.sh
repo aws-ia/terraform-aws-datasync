@@ -11,7 +11,15 @@ echo "Starting Functional Tests"
 cd ${PROJECT_PATH}
 
 #********** Terratest execution **********
-echo "Running Terratest"
+echo "INFO: [Terratest] Running Terratest"
+echo "INFO: [Terratest] Output of environment: $(env)"
+echo "INFO: [Terratest] Current user and home directory: $(whoami) ${HOME}"
+echo "INFO: [Terratest] Creds file path: ${HOME}/.aws/credentials"
+
+mkdir -p $HOME/.aws
+touch $HOME/.aws/credentials
+ls -l $HOME/.aws/credentials
+
 cd test
 rm -f go.mod
 go mod init github.com/aws-ia/terraform-project-ephemeral 
