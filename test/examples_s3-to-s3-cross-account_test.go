@@ -37,12 +37,24 @@ func TestS3toS3CrossAccount(t *testing.T) {
 
 // updateAWSCredentials retrieves a secret from AWS Secrets Manager and writes its content to the .aws/credentials file.
 func updateAWSCredentials(secretName string) error {
+	
 	// Load the AWS default config
 	cfg, err := config.LoadDefaultConfig(context.TODO())
 	if err != nil {
 		return err
 	}
 
+	// Check if the AWS_DEFAULT_REGION or AWS_REGION is set
+	region, ok := os.LookupEnv("AWS_DEFAULT_REGION")
+	if !ok {
+		region, ok = os.LookupEnv("AWS_REGION")
+		if !ok {
+			fmt.Println("INFO: AWS_DEFAULT_REGION or AWS_REGION environment variable not set. Setting Region to us-east-1")
+			region = "us-east-1"
+			cfg.Region = region
+		}
+	}
+	
 	// Create a Secrets Manager client
 	svc := secretsmanager.NewFromConfig(cfg)
 
