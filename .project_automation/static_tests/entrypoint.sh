@@ -38,8 +38,8 @@ fi
 
 #********** Checkov Analysis *************
 echo "Running Checkov Analysis"
-MYCHECKOV=$(checkov --config-file ${PROJECT_PATH}/.config/.checkov.yml || true)
-if [- z "$MYCHECKOV" ]
+checkov --config-file ${PROJECT_PATH}/.config/.checkov.yml
+if [ $? -eq 0 ]
 then 
     echo "Success - checkov found no security issues!"
     echo "$MYCHECKOV"
