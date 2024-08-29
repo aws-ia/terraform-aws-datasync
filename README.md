@@ -163,7 +163,7 @@ provider "aws" {
 }
 
 provider "aws" {
-  alias   = "dest-account"
+  alias   = "destination-account"
   profile = var.dest_account_profile
   region  = var.region
 }
