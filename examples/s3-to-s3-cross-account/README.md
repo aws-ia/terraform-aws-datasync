@@ -12,7 +12,7 @@
 | Name | Version |
 |------|---------|
 | <a name="provider_aws"></a> [aws](#provider\_aws) | >= 3.72.0 |
-| <a name="provider_aws.cross-account"></a> [aws.cross-account](#provider\_aws.cross-account) | >= 3.72.0 |
+| <a name="provider_aws.destination-account"></a> [aws.destination-account](#provider\_aws.destination-account) | >= 3.72.0 |
 | <a name="provider_random"></a> [random](#provider\_random) | n/a |
 
 ## Modules
@@ -31,7 +31,7 @@
 
 | Name | Type |
 |------|------|
-| [aws_iam_role.datasync_source_s3_access_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
+| [aws_iam_role.datasync_dest_s3_access_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
 | [aws_kms_key.dest-kms](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_key) | resource |
 | [aws_kms_key.source-kms](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_key) | resource |
 | [aws_kms_key_policy.dest-kms-key-policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_key_policy) | resource |
@@ -49,16 +49,16 @@
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_cross_account_profile"></a> [cross\_account\_profile](#input\_cross\_account\_profile) | The AWS Profile for Cross Account where resources needed for the cross account DataSync location configuration are created | `string` | `"cross-account"` | no |
-| <a name="input_owner_profile"></a> [owner\_profile](#input\_owner\_profile) | The AWS Profile where all the DataSync resources will be created i.e., DataSync locations, Tasks and Executions | `string` | `"default"` | no |
+| <a name="input_dest_account_profile"></a> [dest\_account\_profile](#input\_dest\_account\_profile) | The AWS Profile for Source Account where resources needed for the source DataSync location configuration are created | `string` | `"destination-account"` | no |
 | <a name="input_region"></a> [region](#input\_region) | The name of the region you wish to deploy into | `string` | `"us-east-1"` | no |
+| <a name="input_source_account_profile"></a> [source\_account\_profile](#input\_source\_account\_profile) | The AWS Profile for Destination Account where all the DataSync resources will be created i.e., DataSync locations, Tasks and Executions | `string` | `"source-account"` | no |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| <a name="output_datasync_dest_role_arn"></a> [datasync\_dest\_role\_arn](#output\_datasync\_dest\_role\_arn) | DataSync Destination S3 Access IAM role ARN |
-| <a name="output_datasync_src_role_arn"></a> [datasync\_src\_role\_arn](#output\_datasync\_src\_role\_arn) | DataSync Source S3 Access IAM role ARN |
+| <a name="output_datasync_dest_role_arn"></a> [datasync\_dest\_role\_arn](#output\_datasync\_dest\_role\_arn) | DataSync Source S3 Access IAM role ARN |
+| <a name="output_datasync_src_role_arn"></a> [datasync\_src\_role\_arn](#output\_datasync\_src\_role\_arn) | DataSync Destination S3 Access IAM role ARN |
 | <a name="output_datasync_task_arn"></a> [datasync\_task\_arn](#output\_datasync\_task\_arn) | Datasync Task ARN |
 | <a name="output_my_s3_dest_locations"></a> [my\_s3\_dest\_locations](#output\_my\_s3\_dest\_locations) | DataSync S3 Destination Location ARN |
 | <a name="output_my_s3_source_locations"></a> [my\_s3\_source\_locations](#output\_my\_s3\_source\_locations) | DataSync S3 Source Location ARN |

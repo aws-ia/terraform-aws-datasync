@@ -3,7 +3,7 @@
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.0.0 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 3.72.0 |
 | <a name="requirement_awscc"></a> [awscc](#requirement\_awscc) | >= 0.11.0 |
 
@@ -45,6 +45,7 @@
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_efs_security_group_egress_cidr_block"></a> [efs\_security\_group\_egress\_cidr\_block](#input\_efs\_security\_group\_egress\_cidr\_block) | IPv4 CIDR block for egress traffic for EFS and Datasync security group | `string` | `"0.0.0.0/0"` | no |
+| <a name="input_region"></a> [region](#input\_region) | The AWS region for this deployment | `string` | `"us-east-1"` | no |
 | <a name="input_subnet-count"></a> [subnet-count](#input\_subnet-count) | Number of sunbets per type | `number` | `1` | no |
 | <a name="input_vpc_cidr_block"></a> [vpc\_cidr\_block](#input\_vpc\_cidr\_block) | VPC CIDR block for the creation of example VPC and subnets | `string` | `"10.0.0.0/16"` | no |
 
