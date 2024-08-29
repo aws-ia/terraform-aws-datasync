@@ -1,6 +1,8 @@
 build/
 plan.out
 plan.out.json
+**/venv/*
+**/.venv/*
 
 # Local .terraform directories
 **/.terraform/*

@@ -74,21 +74,53 @@ resource "aws_iam_role" "datasync_role_s3" {
           ]
           Effect   = "Allow"
           Resource = "${each.value.s3_bucket_arn}/*"
-        },
-        {
-          Sid    = "allowKMSAccess"
-          Effect = "Allow",
-          Action = [
-            "kms:Encrypt",
-            "kms:Decrypt",
-            "kms:DescribeKey",
-            "kms:GenerateDataKey"
-          ],
-          Resource = "arn:aws:kms:*:*:key/*"
         }
       ]
     })
   }
+}
+
+resource "aws_iam_policy" "datasync_role_kms" {
+
+  for_each = {
+    for index, location in var.s3_locations :
+    location.name => location if try(location.create_role, false) && try(location.s3_source_bucket_kms != "", false)
+
+  }
+  name = "datasync_inline_kms_policy"
+  policy = jsonencode({
+
+    Sid    = "allowKMSAccess"
+    Effect = "Allow",
+    Action = [
+      "kms:Encrypt",
+      "kms:Decrypt",
+      "kms:DescribeKey",
+      "kms:GenerateDataKey",
+      "kms:PutRolePolicy",
+      "kms:Get*",
+      "kms:List*"
+    ],
+    Resource = [
+      "${each.value.s3_source_bucket_kms_arn}",
+      "${each.value.s3_dest_bucket_kms_arn}"
+    ]
+
+  })
+
+}
+
+resource "aws_iam_role_policy_attachment" "datasync_role_kms_policy_attachement" {
+
+  for_each = {
+    for index, location in var.s3_locations :
+    location.name => location if try(location.create_role, false) && try(location.s3_source_bucket_kms != "", false)
+
+  }
+
+  role       = aws_iam_role.datasync_role_s3[each.key].name
+  policy_arn = aws_iam_policy.datasync_role_kms[each.key].arn
+
 }
 
 # EFS Datasync location
