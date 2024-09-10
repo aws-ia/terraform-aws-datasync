@@ -57,6 +57,7 @@ module "backup_tasks" {
         posix_permissions = "NONE"
         uid               = "NONE"
         gid               = "NONE"
+        verify_mode       = "ONLY_FILES_TRANSFERRED"
       }
       schedule_expression = "cron(0 6 ? * MON-FRI *)" # Run at 6:00 am (UTC) every Monday through Friday:
     }

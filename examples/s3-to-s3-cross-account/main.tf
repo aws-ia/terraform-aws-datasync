@@ -209,8 +209,9 @@ module "backup_tasks" {
         posix_permissions = "NONE"
         uid               = "NONE"
         gid               = "NONE"
+        verify_mode       = "ONLY_FILES_TRANSFERRED"
       }
-      schedule_expression = "rate(1 hour)" # Run every hour
+      schedule_expression = "rate(1 days)" # Run daily
       includes = {
         "filter_type" = "SIMPLE_PATTERN"
         "value"       = "/projects/important-folder"
