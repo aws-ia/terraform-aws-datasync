@@ -1,4 +1,10 @@
 <!-- BEGIN_TF_DOCS -->
+# EFS to S3
+
+This example demonstrates how to create an EFS to S3 replication scenario using the AWS DataSync module.
+
+![AWS Datasync EFS to S3](./datasync-examples-efs-to-s3.png)
+
 ## Requirements
 
 | Name | Version |
