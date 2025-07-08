@@ -1,8 +1,8 @@
 FROM public.ecr.aws/codebuild/amazonlinux2-x86_64-standard:4.0
-ENV TERRAFORM_VERSION=1.4.2
-ENV GO_VERSION=1.20.2
+ENV TERRAFORM_VERSION=1.7.4
 RUN cd /tmp && \
     wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip && \
+<<<<<<< before updating
     unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/local/bin && chmod 755 /usr/local/bin/terraform
 
 RUN curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
@@ -13,3 +13,6 @@ RUN curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/
 #     export PATH=$PATH:/usr/local/bin/go
 
 RUN goenv install 1.20.3 && goenv global 1.20.3
+=======
+    unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/local/bin && chmod 755 /usr/local/bin/terraform
+>>>>>>> after updating
