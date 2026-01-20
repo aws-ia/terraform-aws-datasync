@@ -9,6 +9,7 @@ variable "s3_locations" {
     s3_source_bucket_kms_arn         = optional(string)
     s3_dest_bucket_kms_arn           = optional(string)
     subdirectory                     = optional(string)
+    region                           = optional(string)
     tags                             = optional(map(string))
     create_role                      = optional(bool)
   }))
@@ -27,6 +28,7 @@ variable "efs_locations" {
     file_system_access_role_arn    = optional(string)
     in_transit_encryption          = optional(string)
     subdirectory                   = optional(string)
+    region                         = optional(string)
     tags                           = optional(map(string))
   }))
   default     = []
