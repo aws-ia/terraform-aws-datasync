@@ -7,6 +7,7 @@ variable "s3_locations" {
     s3_config_bucket_access_role_arn = optional(string)
     s3_storage_class                 = optional(string)
     subdirectory                     = optional(string)
+    region                           = optional(string)
     tags                             = optional(map(string))
     create_role                      = optional(bool)
   }))
@@ -25,6 +26,7 @@ variable "efs_locations" {
     file_system_access_role_arn    = optional(string)
     in_transit_encryption          = optional(string)
     subdirectory                   = optional(string)
+    region                         = optional(string)
     tags                           = optional(map(string))
   }))
   default     = []

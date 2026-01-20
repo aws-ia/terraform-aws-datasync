@@ -15,6 +15,7 @@ resource "aws_datasync_location_s3" "s3_location" {
   subdirectory     = each.value.subdirectory != null ? each.value.subdirectory : "/"
   tags             = each.value.tags != null ? each.value.tags : {}
   agent_arns       = try(each.value.agent_arns, null)
+  region           = try(each.value.region, null)
 
   s3_config {
     bucket_access_role_arn = each.value.s3_config_bucket_access_role_arn != null ? each.value.s3_config_bucket_access_role_arn : aws_iam_role.datasync_role_s3[each.key].arn
@@ -100,6 +101,7 @@ resource "aws_datasync_location_efs" "efs_location" {
   efs_file_system_arn = each.value.efs_file_system_arn
   subdirectory        = each.value.subdirectory != null ? each.value.subdirectory : "/"
   tags                = each.value.tags != null ? each.value.tags : {}
+  region              = try(each.value.region, null)
 
   ec2_config {
     subnet_arn          = each.value.ec2_config_subnet_arn

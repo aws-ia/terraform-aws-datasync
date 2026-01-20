@@ -244,14 +244,14 @@ If you are interested in contributing to the Storage Gateway module, see the [Co
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.0.7 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 4.0.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.0.0 |
 | <a name="requirement_awscc"></a> [awscc](#requirement\_awscc) | >= 0.24.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 4.0.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 6.0.0 |
 
 ## Modules
 
@@ -269,8 +269,8 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_efs_locations"></a> [efs\_locations](#input\_efs\_locations) | A list of EFS locations and associated configuration | <pre>list(object({<br/>    name                           = string<br/>    access_point_arn               = optional(string)<br/>    ec2_config_security_group_arns = list(string)<br/>    ec2_config_subnet_arn          = string<br/>    efs_file_system_arn            = string<br/>    file_system_access_role_arn    = optional(string)<br/>    in_transit_encryption          = optional(string)<br/>    subdirectory                   = optional(string)<br/>    tags                           = optional(map(string))<br/>  }))</pre> | `[]` | no |
-| <a name="input_s3_locations"></a> [s3\_locations](#input\_s3\_locations) | A list of S3 locations and associated configuration | <pre>list(object({<br/>    name                             = string<br/>    agent_arns                       = optional(list(string))<br/>    s3_bucket_arn                    = string<br/>    s3_config_bucket_access_role_arn = optional(string)<br/>    s3_storage_class                 = optional(string)<br/>    subdirectory                     = optional(string)<br/>    tags                             = optional(map(string))<br/>    create_role                      = optional(bool)<br/>  }))</pre> | `[]` | no |
+| <a name="input_efs_locations"></a> [efs\_locations](#input\_efs\_locations) | A list of EFS locations and associated configuration | <pre>list(object({<br/>    name                           = string<br/>    access_point_arn               = optional(string)<br/>    ec2_config_security_group_arns = list(string)<br/>    ec2_config_subnet_arn          = string<br/>    efs_file_system_arn            = string<br/>    file_system_access_role_arn    = optional(string)<br/>    in_transit_encryption          = optional(string)<br/>    subdirectory                   = optional(string)<br/>    region                         = optional(string)<br/>    tags                           = optional(map(string))<br/>  }))</pre> | `[]` | no |
+| <a name="input_s3_locations"></a> [s3\_locations](#input\_s3\_locations) | A list of S3 locations and associated configuration | <pre>list(object({<br/>    name                             = string<br/>    agent_arns                       = optional(list(string))<br/>    s3_bucket_arn                    = string<br/>    s3_config_bucket_access_role_arn = optional(string)<br/>    s3_storage_class                 = optional(string)<br/>    subdirectory                     = optional(string)<br/>    region                           = optional(string)<br/>    tags                             = optional(map(string))<br/>    create_role                      = optional(bool)<br/>  }))</pre> | `[]` | no |
 
 ## Outputs
 
