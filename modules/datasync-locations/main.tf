@@ -46,39 +46,46 @@ resource "aws_iam_role" "datasync_role_s3" {
       },
     ]
   })
+}
 
-  inline_policy {
-    name = "datasync_inline_policy"
-    policy = jsonencode({
-      Version = "2012-10-17"
-      Statement = [
-        {
-          Sid = "allowListGetBucket"
-          Action = [
-            "s3:GetBucketLocation",
-            "s3:ListBucket",
-            "s3:ListBucketMultipartUploads",
-          ]
-          Effect   = "Allow"
-          Resource = each.value.s3_bucket_arn
-        },
-        {
-          Sid = "allowBucketObjects"
-          Action = [
-            "s3:AbortMultipartUpload",
-            "s3:DeleteObject",
-            "s3:GetObject",
-            "s3:ListMultipartUploadParts",
-            "s3:PutObjectTagging",
-            "s3:GetObjectTagging",
-            "s3:PutObject",
-          ]
-          Effect   = "Allow"
-          Resource = "${each.value.s3_bucket_arn}/*"
-        }
-      ]
-    })
+resource "aws_iam_role_policy" "datasync_s3_policy" {
+
+  for_each = {
+    for index, location in var.s3_locations :
+    location.name => location if try(location.create_role, false)
   }
+
+  name = "datasync_inline_policy"
+  role = aws_iam_role.datasync_role_s3[each.key].id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid = "allowListGetBucket"
+        Action = [
+          "s3:GetBucketLocation",
+          "s3:ListBucket",
+          "s3:ListBucketMultipartUploads",
+        ]
+        Effect   = "Allow"
+        Resource = each.value.s3_bucket_arn
+      },
+      {
+        Sid = "allowBucketObjects"
+        Action = [
+          "s3:AbortMultipartUpload",
+          "s3:DeleteObject",
+          "s3:GetObject",
+          "s3:ListMultipartUploadParts",
+          "s3:PutObjectTagging",
+          "s3:GetObjectTagging",
+          "s3:PutObject",
+        ]
+        Effect   = "Allow"
+        Resource = "${each.value.s3_bucket_arn}/*"
+      }
+    ]
+  })
 }
 
 resource "aws_iam_policy" "datasync_role_kms" {
@@ -140,4 +147,23 @@ resource "aws_datasync_location_efs" "efs_location" {
     security_group_arns = each.value.ec2_config_security_group_arns
   }
 
+}
+
+# Object Storage Datasync location
+resource "aws_datasync_location_object_storage" "object_storage_location" {
+  for_each = {
+    for location in var.object_storage_locations :
+    location.name => location # Assign key => value
+  }
+  server_hostname    = each.value.server_hostname
+  bucket_name        = each.value.bucket_name
+  agent_arns         = try(each.value.agent_arns, null)
+  access_key         = try(each.value.access_key, null)
+  secret_key         = try(each.value.secret_key, null)
+  server_port        = try(each.value.server_port, null)
+  server_protocol    = try(each.value.server_protocol, null)
+  server_certificate = try(each.value.server_certificate, null)
+  subdirectory       = each.value.subdirectory != null ? each.value.subdirectory : "/"
+  region             = try(each.value.region, null)
+  tags               = each.value.tags != null ? each.value.tags : {}
 }
