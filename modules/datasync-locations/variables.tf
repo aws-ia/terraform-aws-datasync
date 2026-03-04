@@ -35,3 +35,23 @@ variable "efs_locations" {
   description = "A list of EFS locations and associated configuration"
 }
 
+# A list of Object Storage location configuration objects. See Object Storage Locations for supported attributes
+variable "object_storage_locations" {
+  type = list(object({
+    name               = string
+    server_hostname    = string
+    bucket_name        = string
+    agent_arns         = optional(list(string))
+    access_key         = optional(string)
+    secret_key         = optional(string)
+    server_port        = optional(number)
+    server_protocol    = optional(string)
+    server_certificate = optional(string)
+    subdirectory       = optional(string)
+    region             = optional(string)
+    tags               = optional(map(string))
+  }))
+  default     = []
+  description = "A list of Object Storage locations and associated configuration"
+}
+

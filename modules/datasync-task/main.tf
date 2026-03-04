@@ -11,14 +11,20 @@ resource "aws_datasync_task" "datasync_tasks" {
   # Once set, task_mode cannot be changed after task creation
   task_mode                = try(each.value.task_mode, null)
 
-  excludes {
-    filter_type = try(each.value.excludes.filter_type, null)
-    value       = try(each.value.excludes.value, null)
+  dynamic "excludes" {
+    for_each = try(each.value.excludes, null) != null ? [each.value.excludes] : []
+    content {
+      filter_type = excludes.value.filter_type
+      value       = excludes.value.value
+    }
   }
-  includes {
-    filter_type = try(each.value.includes.filter_type, null)
-    value       = try(each.value.includes.value, null)
 
+  dynamic "includes" {
+    for_each = try(each.value.includes, null) != null ? [each.value.includes] : []
+    content {
+      filter_type = includes.value.filter_type
+      value       = includes.value.value
+    }
   }
   name = try(each.value.name, null)
   options {
