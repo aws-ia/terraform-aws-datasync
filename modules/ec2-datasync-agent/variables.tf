@@ -6,7 +6,7 @@ variable "ami_id" {
 
 variable "ssm_parameter_name" {
   type        = string
-  description = "SSM parameter path for the DataSync agent AMI."
+  description = "SSM parameter path for the DataSync agent AMI. Valid paths: /aws/service/datasync/ami/v1 (Basic AL2), /aws/service/datasync/ami/v2 (Basic AL3), /aws/service/datasync/ami/v3 (Enhanced AL3)."
   default     = "/aws/service/datasync/ami/v3"
 }
 
