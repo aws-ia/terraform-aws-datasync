@@ -1,120 +1,76 @@
-# DataSync Agent Deployment Test
+<!-- BEGIN_TF_DOCS -->
+# Test Agent Deployment Example
 
-This is a minimal test example to verify the DataSync agent modules work correctly.
+End-to-end example that deploys and activates a DataSync Enhanced mode agent on EC2.
 
-## What This Creates
+## What This Example Creates
 
-1. VPC with a public subnet
-2. DataSync agent EC2 instance (m6a.2xlarge, Enhanced mode)
-3. Elastic IP for the agent
-4. Security group with required ports
-5. Activated DataSync agent registered with AWS
+- VPC with a public subnet
+- EC2 instance running the DataSync Enhanced mode agent AMI
+- Elastic IP for the agent
+- Security group with required ports
+- Activated DataSync agent registered with AWS
 
-## How to Test
+## Usage
 
-### 1. Navigate to this directory
-```bash
-cd examples/test-agent-deployment
-```
-
-### 2. Initialize Terraform
 ```bash
 terraform init
-```
-
-### 3. Review the plan
-```bash
-terraform plan
-```
-
-### 4. Deploy
-```bash
 terraform apply
 ```
 
-Type `yes` when prompted.
+To clean up:
 
-### 5. Wait for completion
-The deployment takes about 5-10 minutes:
-- EC2 instance creation: ~2 minutes
-- Agent boot time: ~2-3 minutes
-- Activation: ~1 minute
-
-### 6. Verify the outputs
-```bash
-terraform output
-```
-
-You should see:
-- `agent_public_ip` - The public IP of the agent
-- `agent_arn` - The ARN of the activated agent (this confirms activation worked!)
-- `agent_instance_id` - The EC2 instance ID
-
-### 7. Verify in AWS Console
-
-**EC2 Console:**
-- Go to EC2 → Instances
-- Find the instance named "test-datasync-agent"
-- Verify it's running
-
-**DataSync Console:**
-- Go to DataSync → Agents
-- Find the agent named "test-datasync-agent"
-- Status should be "Online"
-
-### 8. Clean up
 ```bash
 terraform destroy
 ```
 
-Type `yes` when prompted.
+## Notes
 
-## Expected Costs
+- The agent takes approximately 3 minutes to boot before activation
+- The `m6a.2xlarge` instance type is recommended by AWS for Enhanced mode agents
+- Port 80 must be reachable from where Terraform is running for agent activation
 
-While running:
-- EC2 m6a.2xlarge: ~$0.35/hour (~$8.40/day)
-- EBS volume: ~$0.10/GB/month
-- Elastic IP: Free while attached
+## Requirements
 
-**Total: ~$10-15 for a full day of testing**
+| Name | Version |
+|------|---------|
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.0.7 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.0.0 |
 
-## Troubleshooting
+## Providers
 
-### Activation Fails
+| Name | Version |
+|------|---------|
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 6.0.0 |
 
-If you see an error like "timeout while waiting for agent activation":
+## Modules
 
-1. **Wait longer**: The agent needs 2-3 minutes to boot after EC2 instance is ready
-2. **Check security group**: Port 80 must be open from your IP
-3. **Verify AMI**: The SSM parameter might not exist in your region
+| Name | Source | Version |
+|------|--------|---------|
+| <a name="module_datasync_agent_activation"></a> [datasync\_agent\_activation](#module\_datasync\_agent\_activation) | ../../modules/datasync-agent-activation | n/a |
+| <a name="module_datasync_agent_ec2"></a> [datasync\_agent\_ec2](#module\_datasync\_agent\_ec2) | ../../modules/ec2-datasync-agent | n/a |
+| <a name="module_vpc"></a> [vpc](#module\_vpc) | terraform-aws-modules/vpc/aws | >=5.0.0 |
 
-Try running `terraform apply` again - it will retry activation.
+## Resources
 
-### AMI Not Found
+| Name | Type |
+|------|------|
+| [aws_availability_zones.available](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/availability_zones) | data source |
 
-If you see "SSM parameter not found":
-- The DataSync agent AMI might not be available in your region
-- Try a different region (us-east-1, us-west-2 are most likely to work)
-- Check AWS documentation for DataSync agent availability
+## Inputs
 
-### Instance Type Not Available
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | AWS region for resources | `string` | `"us-east-1"` | no |
+| <a name="input_ssh_key_name"></a> [ssh\_key\_name](#input\_ssh\_key\_name) | Name of EC2 key pair for SSH access (optional) | `string` | `null` | no |
 
-If m6a.2xlarge is not available in your region:
-- Edit `main.tf` and change `instance_type = "m5.2xlarge"`
-- m5.2xlarge is more widely available
+## Outputs
 
-## What to Test
-
-1. ✅ **Module loads**: `terraform init` succeeds
-2. ✅ **Plan works**: `terraform plan` shows resources to create
-3. ✅ **Deployment succeeds**: `terraform apply` completes
-4. ✅ **Agent activates**: `agent_arn` output is populated
-5. ✅ **Agent is online**: Check DataSync console
-6. ✅ **Cleanup works**: `terraform destroy` removes everything
-
-## Next Steps
-
-After verifying this works:
-1. Create NFS/SMB location modules
-2. Create a full example with on-premises storage
-3. Test actual data transfers
+| Name | Description |
+|------|-------------|
+| <a name="output_agent_arn"></a> [agent\_arn](#output\_agent\_arn) | ARN of the activated DataSync agent |
+| <a name="output_agent_id"></a> [agent\_id](#output\_agent\_id) | ID of the activated DataSync agent |
+| <a name="output_agent_instance_id"></a> [agent\_instance\_id](#output\_agent\_instance\_id) | EC2 instance ID of the DataSync agent |
+| <a name="output_agent_private_ip"></a> [agent\_private\_ip](#output\_agent\_private\_ip) | Private IP of the DataSync agent |
+| <a name="output_agent_public_ip"></a> [agent\_public\_ip](#output\_agent\_public\_ip) | Public IP of the DataSync agent |
+<!-- END_TF_DOCS -->

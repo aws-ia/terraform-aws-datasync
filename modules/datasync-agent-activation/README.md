@@ -1,145 +1,76 @@
-# AWS DataSync Agent Activation Module
+<!-- BEGIN_TF_DOCS -->
+# AWS DataSync Agent Activation Terraform Sub-module
 
 Activates a deployed DataSync agent with AWS, enabling it to be managed by the DataSync service.
 
 ## Overview
 
-This module creates an `aws_datasync_agent` resource that activates a DataSync agent by contacting it on port 80 (HTTP). The activation process:
+This module activates a DataSync agent by retrieving an activation key via HTTP and registering the agent with AWS DataSync. The activation process:
 
-1. Terraform makes an HTTP GET request to the agent's IP address on port 80
-2. The agent responds with an activation key
-3. Terraform registers the agent with AWS DataSync service
-4. AWS returns an agent ARN that can be used in DataSync locations
-5. The agent turns off the HTTP server on port 80 after activation
-
-## Usage
-
-### Basic Activation
-
-```hcl
-module "datasync_agent" {
-  source = "../../modules/datasync-agent"
-  
-  agent_name       = "my-datasync-agent"
-  agent_ip_address = module.ec2_datasync_agent.public_ip
-}
-```
-
-### With VPC Endpoint (Private Connectivity)
-
-```hcl
-module "datasync_agent" {
-  source = "../../modules/datasync-agent"
-  
-  agent_name            = "my-datasync-agent"
-  agent_ip_address      = module.ec2_datasync_agent.public_ip
-  vpc_endpoint_id       = aws_vpc_endpoint.datasync.id
-  private_link_endpoint = data.aws_network_interface.datasync_vpce.private_ip
-  security_group_arns   = [aws_security_group.datasync.arn]
-  subnet_arns           = [aws_subnet.private.arn]
-  
-  tags = {
-    Environment = "production"
-    Project     = "data-migration"
-  }
-}
-```
-
-### Complete Example with EC2 Agent
-
-```hcl
-# Deploy the agent EC2 instance
-module "ec2_datasync_agent" {
-  source = "../../modules/ec2-datasync-agent"
-  
-  vpc_id    = "vpc-12345678"
-  subnet_id = "subnet-12345678"
-  name      = "datasync-agent"
-  
-  create_security_group = true
-}
-
-# Activate the agent
-module "datasync_agent" {
-  source = "../../modules/datasync-agent"
-  
-  agent_name       = "my-datasync-agent"
-  agent_ip_address = module.ec2_datasync_agent.public_ip
-  
-  # Ensure EC2 instance is ready before activation
-  agent_depends_on = [module.ec2_datasync_agent]
-}
-
-# Use the agent ARN in a location
-module "nfs_location" {
-  source = "../../modules/datasync-locations"
-  
-  nfs_locations = [{
-    name            = "onprem-nfs"
-    server_hostname = "192.168.1.100"
-    subdirectory    = "/exports/data"
-    agent_arns      = [module.datasync_agent.agent_arn]
-  }]
-}
-```
+1. Waits for the agent EC2 instance to boot (configurable via `agent_boot_wait`)
+2. Makes an HTTP request to the agent's IP address on port 80 to retrieve an activation key
+3. Registers the agent with AWS DataSync using the activation key
+4. Returns the agent ARN for use in DataSync locations and tasks
 
 ## Activation Requirements
 
-For successful activation:
+- **Network Access**: The machine running Terraform must be able to reach the agent IP on port 80
+- **Agent Ready**: The agent EC2 instance must be fully booted (the module includes a configurable wait)
+- **Security Group**: Port 80 must be open from Terraform's network
 
-1. **Network Access**: Terraform must be able to reach the agent IP on port 80
-2. **Agent Ready**: The agent EC2 instance must be fully booted and running
-3. **Security Group**: Port 80 must be open from Terraform's IP address
-4. **Timing**: May need to wait 2-3 minutes after EC2 instance creation for agent to be ready
+## VPC Endpoint Support
 
-## Troubleshooting
-
-### Activation Timeout
-
-If activation times out:
-- Verify security group allows port 80 from Terraform's IP
-- Check agent EC2 instance is running and healthy
-- Wait a few minutes for agent to fully boot
-- Verify network connectivity to the agent IP
-
-### VPC Endpoint Issues
-
-If using VPC endpoint:
-- Ensure VPC endpoint is created and available
-- Verify security groups allow traffic between agent and VPC endpoint
-- Check subnet routing allows agent to reach VPC endpoint
+For private connectivity, the module supports optional VPC endpoint configuration via `vpc_endpoint_id`, `private_link_endpoint`, `security_group_arns`, and `subnet_arns`.
 
 ## Requirements
 
 | Name | Version |
 |------|---------|
-| terraform | >= 1.0.7 |
-| aws | >= 6.0.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.0.7 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.0.0 |
+| <a name="requirement_http"></a> [http](#requirement\_http) | >= 3.0.0 |
+| <a name="requirement_time"></a> [time](#requirement\_time) | >= 0.9.0 |
+
+## Providers
+
+| Name | Version |
+|------|---------|
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 6.0.0 |
+| <a name="provider_http"></a> [http](#provider\_http) | >= 3.0.0 |
+| <a name="provider_time"></a> [time](#provider\_time) | >= 0.9.0 |
+
+## Modules
+
+No modules.
+
+## Resources
+
+| Name | Type |
+|------|------|
+| [aws_datasync_agent.agent](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/datasync_agent) | resource |
+| [time_sleep.wait_for_agent](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) | resource |
+| [http_http.activation](https://registry.terraform.io/providers/hashicorp/http/latest/docs/data-sources/http) | data source |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| agent_name | Name of the DataSync agent | `string` | n/a | yes |
-| agent_ip_address | IP address of the DataSync agent for activation | `string` | n/a | yes |
-| vpc_endpoint_id | The ID of the VPC endpoint that the agent has access to | `string` | `null` | no |
-| private_link_endpoint | The IP address of the VPC endpoint for activation | `string` | `null` | no |
-| security_group_arns | ARNs of security groups for data transfer task subnets | `list(string)` | `[]` | no |
-| subnet_arns | ARNs of subnets for DataSync elastic network interfaces | `list(string)` | `[]` | no |
-| tags | Key-value pairs of resource tags | `map(string)` | `{}` | no |
-| agent_depends_on | Resource dependencies to ensure agent is ready | `any` | `null` | no |
+| <a name="input_activation_region"></a> [activation\_region](#input\_activation\_region) | AWS region for agent activation | `string` | n/a | yes |
+| <a name="input_agent_ip_address"></a> [agent\_ip\_address](#input\_agent\_ip\_address) | IP address of the DataSync agent for activation. Terraform will make an HTTP GET request to port 80 on this IP. | `string` | n/a | yes |
+| <a name="input_agent_name"></a> [agent\_name](#input\_agent\_name) | Name of the DataSync agent | `string` | n/a | yes |
+| <a name="input_agent_boot_wait"></a> [agent\_boot\_wait](#input\_agent\_boot\_wait) | Time to wait for the DataSync agent to boot before attempting activation (e.g., '3m', '5m') | `string` | `"3m"` | no |
+| <a name="input_agent_depends_on"></a> [agent\_depends\_on](#input\_agent\_depends\_on) | (Optional) Resource dependencies to ensure agent is ready before activation | `any` | `null` | no |
+| <a name="input_private_link_endpoint"></a> [private\_link\_endpoint](#input\_private\_link\_endpoint) | (Optional) The IP address of the VPC endpoint the agent should connect to when retrieving an activation key | `string` | `null` | no |
+| <a name="input_security_group_arns"></a> [security\_group\_arns](#input\_security\_group\_arns) | (Optional) The ARNs of the security groups used to protect your data transfer task subnets | `list(string)` | `[]` | no |
+| <a name="input_subnet_arns"></a> [subnet\_arns](#input\_subnet\_arns) | (Optional) The ARNs of the subnets in which DataSync will create elastic network interfaces | `list(string)` | `[]` | no |
+| <a name="input_tags"></a> [tags](#input\_tags) | (Optional) Key-value pairs of resource tags to assign to the DataSync agent | `map(string)` | `{}` | no |
+| <a name="input_vpc_endpoint_id"></a> [vpc\_endpoint\_id](#input\_vpc\_endpoint\_id) | (Optional) The ID of the VPC endpoint that the agent has access to | `string` | `null` | no |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| agent_arn | Amazon Resource Name (ARN) of the DataSync agent |
-| agent_id | ID of the DataSync agent |
-| agent_name | Name of the DataSync agent |
-
-## Notes
-
-- The agent ARN is required when creating NFS or SMB DataSync locations
-- A location can have up to 4 Basic mode agents and 4 Enhanced mode agents
-- The agent must match the task mode (Basic task uses Basic agent, Enhanced task uses Enhanced agent)
-- After activation, port 80 is no longer needed and can be removed from security groups
+| <a name="output_agent_arn"></a> [agent\_arn](#output\_agent\_arn) | Amazon Resource Name (ARN) of the DataSync agent |
+| <a name="output_agent_id"></a> [agent\_id](#output\_agent\_id) | ID of the DataSync agent |
+| <a name="output_agent_name"></a> [agent\_name](#output\_agent\_name) | Name of the DataSync agent |
+<!-- END_TF_DOCS -->
