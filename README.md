@@ -133,7 +133,50 @@ module "s3_to_s3_tasks" {
 }
 ```
 
-## Example with DataSync Locations and Task module in a Cross Account Use Case
+## Usage with DataSync Agent Modules
+
+For scenarios requiring a DataSync agent (e.g., transferring data from on-premises or across accounts where direct connectivity isn't available), this repository provides two sub-modules:
+
+### [EC2 DataSync Agent Module](modules/ec2-datasync-agent/)
+
+Deploys an EC2 instance running the DataSync agent AMI with an Elastic IP and optional security group.
+
+```hcl
+module "datasync_agent_ec2" {
+  source = "aws-ia/datasync/aws//modules/ec2-datasync-agent"
+
+  vpc_id        = module.vpc.vpc_id
+  subnet_id     = module.vpc.public_subnets[0]
+  name          = "my-datasync-agent"
+  instance_type = "m6a.2xlarge"
+
+  create_security_group         = true
+  ingress_cidr_blocks           = "10.0.0.0/16"
+  ingress_cidr_block_activation = "0.0.0.0/0"
+}
+```
+
+### [DataSync Agent Module](modules/datasync-agent/)
+
+Activates a deployed DataSync agent by retrieving an activation key via HTTP and registering it with AWS DataSync.
+
+```hcl
+module "datasync_agent" {
+  source = "aws-ia/datasync/aws//modules/datasync-agent"
+
+  agent_name        = "my-datasync-agent"
+  agent_ip_address  = module.datasync_agent_ec2.public_ip
+  activation_region = "us-east-1"
+
+  agent_depends_on = module.datasync_agent_ec2
+}
+```
+
+- Link to EFS-to-EFS cross-account sync example with EC2 agent : [efs-efs-cross-account-agent](examples/efs-efs-cross-account-agent/)
+
+**Note:** Cross-account EFS-to-EFS transfers require a Basic mode agent and NFS locations. Enhanced mode is not supported for this transfer type. See the example for details.
+
+## Example with DataSync Locations and Task module in a Cross Account Use Case (S3-to-S3)
 
 AWS DataSync can transfer data between Amazon S3 buckets that belong to different AWS accounts. Here's what a cross-account transfer using DataSync can look like :
 

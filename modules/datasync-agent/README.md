@@ -1,5 +1,5 @@
 <!-- BEGIN_TF_DOCS -->
-# AWS DataSync Agent Activation Terraform Sub-module
+# AWS DataSync Agent Terraform Sub-module
 
 Activates a deployed DataSync agent with AWS, enabling it to be managed by the DataSync service.
 

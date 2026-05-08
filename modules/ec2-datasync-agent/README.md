@@ -41,7 +41,7 @@ The `root_block_device` variable allows customization of the root EBS volume:
 
 ## Next Steps
 
-After deploying this module, use the [datasync-agent-activation](../datasync-agent-activation/) module to activate the agent with AWS DataSync.
+After deploying this module, use the [datasync-agent](../datasync-agent/) module to activate the agent with AWS DataSync.
 
 ## Requirements
 
